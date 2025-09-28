@@ -19,7 +19,7 @@ module.exports = {
     const inviteLink = "https://discord.gg/mf4pjDRgqe";
 
     const textComponent = new TextDisplayBuilder().setContent(
-      "# 👮‍♂️ Pozvánka na LSPD Discord\n\n\nPřipoj se na Discord pomocí tlačítka níže. Dále postupuj podle instrukcí osoby, které Vás nabírá.\n\n**🔗 Další odkazy**\n[Lion Police RP - Discord](https://discord.gg/rrZ7RpEUkb) | [Guide](https://guide.lionsproject.eu/)"
+      "# 👮‍♂️ Pozvánka na LSPD Discord\n\n\nPřipoj se na Discord pomocí tlačítka níže. Dále postupuj podle instrukcí osoby, které Vás nabírá.\n\nTaké doporučujeme si vybrat všechny/nějaké doučovací kurzy, které najdete v https://discord.com/channels/1348336228411375729/1398571450042155018.\n\n**🔗 Další odkazy**\n[Lion Police RP - Discord](https://discord.gg/rrZ7RpEUkb) | [Guide](https://guide.lionsproject.eu/)"
     );
 
     const button = new ButtonBuilder()
