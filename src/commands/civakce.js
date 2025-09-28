@@ -36,7 +36,7 @@ module.exports = {
         .filter((line) => line.trim() !== "");
 
       const textComponent = new TextDisplayBuilder().setContent(
-        `# 🎭 RP Prompt\n\nAhoj! Vygeneroval jsem ti náhodný návrh na akci\n\n**${randomPrompt}**\nPokud se ti tento návrh nehodí, zkus příkaz \`/rpprompt\` znovu pro nový návrh. Momentálně obsahuju **${numberofprompts.length}** unikatních promptů!`
+        `# 🎭 RP Prompt\n\nAhoj! Vygeneroval jsem ti náhodný návrh na akci\n\n**${randomPrompt}**\nPokud se ti tento návrh nehodí, zkus příkaz \`/rpprompt\` znovu pro nový návrh. Momentálně obsahuju **${numberofprompts.length}** unikatních promptů!\n\n⚠️ This command is outdated and will not be updated!`
       );
 
       const thumbnailComponent = new ThumbnailBuilder({
