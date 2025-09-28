@@ -10,7 +10,7 @@ module.exports = {
 
   run: ({ interaction, client, handler }) => {
     const embed = new EmbedBuilder()
-      .setTitle("🦁 Jak se připojit na náš server?")
+      .setTitle("<:lionpoliceroleplay:1292049154402549762> Jak se připojit na náš server?")
       .setDescription("Pro připojení následujte níže sepsané kroky")
       .setColor("#ffb500")
       .addFields(

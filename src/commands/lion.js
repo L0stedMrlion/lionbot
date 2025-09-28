@@ -10,7 +10,7 @@ module.exports = {
 
   run: ({ interaction, client, handler }) => {
     const embed = new EmbedBuilder()
-      .setTitle("🦁 Lion Police Roleplay")
+      .setTitle("<:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay")
       .setDescription(
         "Jsme rádi, že jste se chcete k nám kouknout! Podívejte se níže co u nás najdete."
       )

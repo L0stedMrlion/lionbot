@@ -10,7 +10,7 @@ module.exports = {
 
   run: ({ interaction, client, handler }) => {
     const embed = new EmbedBuilder()
-      .setTitle("🦁 Lion Police Roleplay - Binding")
+      .setTitle("<:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Binding")
       .setDescription(
         "Bindovat si věci na určité klávesy je občas jednoduše, naopak občas složité, níže máte sepsáno jak se binduje přes F8."
       )

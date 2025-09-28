@@ -10,7 +10,7 @@ module.exports = {
 
   run: ({ interaction, client, handler }) => {
     const embed = new EmbedBuilder()
-      .setTitle("🦁 Lion Police Roleplay - Crosshair")
+      .setTitle("<:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Crosshair")
       .setDescription(
         "Věděl jsi, že si přes F8 můžeš nastavit custom crosshair, který ti na serveru pomůže? Níže si přečti jak ho můžeš zapnout."
       )
