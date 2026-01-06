@@ -103,4 +103,3 @@ client
   .catch((err) => {
     console.error('❌ Discord login failed:', err);
   });
-
