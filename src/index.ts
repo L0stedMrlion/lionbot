@@ -68,7 +68,7 @@ async function updateServerStats() {
 
     const onlineChannel = client.channels.cache.get(CHANNEL_IDS.online);
     if (onlineChannel && 'setName' in onlineChannel) {
-      await onlineChannel.setName(`👥 Players Online: ${total_players}/32`);
+      await onlineChannel.setName(`👥 Players Online: ${total_players}/48`);
       console.log(`✅ Updated online channel: ${total_players} players`);
     } else {
       console.error('❌ Online channel not found or cannot be renamed');
@@ -103,3 +103,4 @@ client
   .catch((err) => {
     console.error('❌ Discord login failed:', err);
   });
+
