@@ -24,22 +24,48 @@ const db = mysql.createPool({
 
 (async () => {
   try {
+    console.log('🔄 Attempting to connect to MySQL...');
+    console.log(`   Host: ${process.env.IP || 'localhost'}`);
+    console.log(`   Port: ${process.env.DB_PORT || '3306'}`);
+    console.log(`   Database: ${process.env.DB_NAME}`);
+    console.log(`   User: ${process.env.DB_USER}`);
+
     await db.query('SELECT 1');
     console.log('✅ Connected to MySQL');
-  } catch (err) {
+  } catch (err: any) {
     console.error('❌ MySQL Connection Failed:', err);
+    console.error('');
+    console.error('💡 Troubleshooting tips:');
+    console.error('   1. Verify the database server is running');
+    console.error('   2. Check if the IP/host is correct in your .env file');
+    console.error(
+      '   3. Ensure port 3306 (or your custom port) is not blocked by firewall',
+    );
+    console.error('   4. Verify database credentials are correct');
+    console.error(
+      '   5. If using a remote database, check network connectivity',
+    );
+    console.error('');
+    console.error(
+      '⚠️  Bot will continue running, but database features will not work.',
+    );
   }
 })();
 
 const CHANNEL_IDS = {
   stats: '1429495007584194704',
   online: '1429495249855840538',
+  duty_times: '1460019305448996894',
 };
 
 interface ServerStats extends RowDataPacket {
   police_count: number;
   civ_count: number;
   total_players: number;
+}
+
+interface DutyTimeStats extends RowDataPacket {
+  total_seconds: number;
 }
 
 async function updateServerStats() {
@@ -78,12 +104,40 @@ async function updateServerStats() {
   }
 }
 
-client.once('ready', () => {
+async function updateDutyTimeStats() {
+  try {
+    const [results] = await db.query<DutyTimeStats[]>(
+      'SELECT SUM(total_seconds) as total_seconds FROM duty_times',
+    );
+
+    if (!results.length || results[0].total_seconds === null) {
+      console.log('⚠️ No duty times found in database');
+      return;
+    }
+
+    const { total_seconds } = results[0];
+    const total_hours = Math.round(total_seconds / 3600);
+
+    const dutyChannel = client.channels.cache.get(CHANNEL_IDS.duty_times);
+    if (dutyChannel && 'setName' in dutyChannel) {
+      await dutyChannel.setName(`🚓 Total Duty Hours: ${total_hours}h`);
+      console.log(`✅ Updated duty channel: ${total_hours}h`);
+    } else {
+      console.error('❌ Duty channel not found or cannot be renamed');
+    }
+  } catch (err) {
+    console.error('❌ Error updating duty stats:', err);
+  }
+}
+
+client.once('clientReady', () => {
   console.log('🤖 Bot is ready, updating stats...');
   updateServerStats();
+  updateDutyTimeStats();
 });
 
 setInterval(updateServerStats, 330000);
+setInterval(updateDutyTimeStats, 1200000);
 
 new CommandKit({
   client,

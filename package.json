@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node .",
-    "dev": "tsx watch src/index.ts",
+    "start": "node --no-deprecation .",
+    "dev": "NODE_NO_WARNINGS=1 tsx watch src/index.ts",
     "build": "tsc",
     "format": "prettier --write ."
   },
