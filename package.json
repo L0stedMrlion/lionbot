@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node --no-deprecation .",
-    "dev": "NODE_NO_WARNINGS=1 tsx watch src/index.ts",
+    "start": "node --openssl-legacy-provider --no-deprecation .",
+    "dev": "NODE_NO_WARNINGS=1 node --openssl-legacy-provider ./node_modules/.bin/tsx watch src/index.ts",
     "build": "tsc",
     "format": "prettier --write ."
   },
@@ -17,6 +17,7 @@
     "commandkit": "^0.1.6",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
+    "googleapis": "^170.1.0",
     "mysql2": "^3.15.3"
   },
   "devDependencies": {
