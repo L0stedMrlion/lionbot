@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node --no-deprecation .",
-    "dev": "NODE_NO_WARNINGS=1 tsx watch src/index.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "format": "prettier --write ."
   },
@@ -14,15 +14,18 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "commandkit": "^0.1.6",
-    "discord.js": "^14.18.0",
-    "dotenv": "^16.4.7",
-    "mysql2": "^3.15.3"
+    "@google-cloud/local-auth": "^3.0.1",
+    "commandkit": "^0.1.10",
+    "discord.js": "^14.25.1",
+    "dotenv": "^16.6.1",
+    "googleapis": "^170.1.0",
+    "mysql2": "^3.16.1",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.6",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.10.9",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
