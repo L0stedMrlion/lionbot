@@ -1,4 +1,4 @@
-import { MessageFlags, TextChannel } from 'discord.js';
+import { MessageFlags } from 'discord.js';
 import type {
   CommandData,
   SlashCommandProps,
@@ -18,13 +18,12 @@ export const data: CommandData = {
 };
 
 export async function run({ interaction, client }: SlashCommandProps) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
   const member = interaction.member;
 
   if (!interaction.guild || !member || !('roles' in member)) {
-    return interaction.reply({
-      content: '❌ This command can only be used on a server.',
-      flags: MessageFlags.Ephemeral,
-    });
+    return interaction.editReply('❌ This command can only be used on a server.');
   }
 
   const roles = member.roles;
@@ -33,19 +32,13 @@ export async function run({ interaction, client }: SlashCommandProps) {
     : roles.cache.has(REQUIRED_ROLE_ID);
 
   if (!hasRole) {
-    return interaction.reply({
-      content: '❌ You do not have permission to use this command.',
-      flags: MessageFlags.Ephemeral,
-    });
+    return interaction.editReply('❌ You do not have permission to use this command.');
   }
 
   try {
     const guild = await client.guilds.fetch(TARGET_GUILD_ID).catch(() => null);
     if (!guild) {
-      return interaction.reply({
-        content: "❌ Bot doesn't have access to the target server.",
-        flags: MessageFlags.Ephemeral,
-      });
+      return interaction.editReply("❌ Bot doesn't have access to the target server.");
     }
 
     const channel = await guild.channels
@@ -53,33 +46,17 @@ export async function run({ interaction, client }: SlashCommandProps) {
       .catch(() => null);
 
     if (!channel || !channel.isTextBased()) {
-      return interaction.reply({
-        content: '❌ Failed to find the target text channel.',
-        flags: MessageFlags.Ephemeral,
-      });
+      return interaction.editReply('❌ Failed to find the target text channel.');
     }
 
     await channel.send({
       content: `<@&${PING_ROLE_ID}>, v případě, že nechceš dostávat Twitch Ping, můžeš si to vypnout <id:customize>`,
     });
 
-    await interaction.reply({
-      content: '✅ Twitch ping was sent successfully!',
-      flags: MessageFlags.Ephemeral,
-    });
+    await interaction.editReply('✅ Twitch ping was sent successfully!');
   } catch (error) {
     console.error('Error sending twitch ping:', error);
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: '❌ An error occurred while sending the ping.',
-        flags: MessageFlags.Ephemeral,
-      });
-    } else {
-      await interaction.followUp({
-        content: '❌ An error occurred while sending the ping.',
-        flags: MessageFlags.Ephemeral,
-      });
-    }
+    await interaction.editReply('❌ An error occurred while sending the ping.');
   }
 }
 
@@ -87,6 +64,3 @@ export const options: CommandOptions = {
   devOnly: false,
   deleted: false,
 };
-
-
-
