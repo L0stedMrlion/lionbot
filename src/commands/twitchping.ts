@@ -52,7 +52,7 @@ export async function run({ interaction, client }: SlashCommandProps) {
       .fetch(TARGET_CHANNEL_ID)
       .catch(() => null);
 
-    if (!channel || !(channel instanceof TextChannel)) {
+    if (!channel || !channel.isTextBased()) {
       return interaction.reply({
         content: '❌ Failed to find the target text channel.',
         flags: MessageFlags.Ephemeral,
@@ -87,5 +87,6 @@ export const options: CommandOptions = {
   devOnly: false,
   deleted: false,
 };
+
 
 
