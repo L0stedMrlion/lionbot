@@ -60,7 +60,7 @@ export async function run({ interaction, client }: SlashCommandProps) {
     }
 
     await channel.send({
-      content: `<@&${PING_ROLE_ID}>`,
+      content: `<@&${PING_ROLE_ID}>, v případě, že nechceš dostávat Twitch Ping, můžeš si to vypnout <id:customize>`,
     });
 
     await interaction.reply({
@@ -87,3 +87,4 @@ export const options: CommandOptions = {
   devOnly: false,
   deleted: false,
 };
+
