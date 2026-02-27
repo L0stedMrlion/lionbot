@@ -8,7 +8,7 @@ import type {
 const REQUIRED_ROLE_ID = '1287347387706118185';
 const TARGET_GUILD_ID = '1286329202723000431';
 const TARGET_CHANNEL_ID = '1296897838692700304';
-const PING_ROLE_ID = '1286330077843558531';
+const PING_ROLE_ID = '1296897948348715071';
 
 export const data: CommandData = {
   name: 'twitchping',
@@ -64,3 +64,4 @@ export const options: CommandOptions = {
   devOnly: false,
   deleted: false,
 };
+
