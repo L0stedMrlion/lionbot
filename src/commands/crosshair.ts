@@ -23,6 +23,11 @@ export function run({ interaction, client, handler }: SlashCommandProps) {
     .setColor('#ffb500')
     .addFields(
       {
+        name: '📌 Novinka — In-game příkaz',
+        value:
+          'Nově si můžeš zobrazit tuto informaci přímo **ve hře** pomocí příkazu `/crosshair` v chatu!',
+      },
+      {
         name: '🎯 Zapnutí Crosshairu',
         value:
           'Vložte do konzole například \n```cl_customcrosshair 1; cl_crosshairstyle 5; cl_crosshairsize 2.0; cl_crosshair_drawoutline 1; cl_crosshairthickness 0.7; cl_crosshair_outlinethickness 0.3; cl_crosshairdot 0; cl_crosshairgap -2; cl_crosshaircolor 5; cl_crosshaircolor_r 255; cl_crosshaircolor_g 255; cl_crosshaircolor_b 255;```\n V případě, že chcete mít crosshair jiný, upravte si ho podle svých potřeb. \n\n||Jedná se o crosshair config od <@710549603216261141>.||',
@@ -46,7 +51,5 @@ export function run({ interaction, client, handler }: SlashCommandProps) {
 
 export const options: CommandOptions = {
   devOnly: false,
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
   deleted: false,
 };
