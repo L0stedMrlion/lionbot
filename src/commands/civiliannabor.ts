@@ -50,7 +50,7 @@ export async function run({ interaction }: SlashCommandProps) {
           '> S velkým potěšením Vám oznamujeme, že Vaše přihláška byla vyhodnocena kladně a byl jsi **PŘIJAT** ✅! 🎉\n\n' +
           'Nyní tě čeká **vstupní pohovor**. Veškeré podrobnosti a instrukce, jak dále postupovat, nalezneš v **připnuté zprávě** v kanále níže:\n\n' +
           '✨ **Odkaz na kanál, kde zjistíš více**\n' +
-          '👉 [Klikni zde pro přejití do kanálu](https://discord.com/channels/1286329202723000431/1455729556253048955)\n\n' +
+          '👉 [Klikni zde pro přejití do kanálu](https://discord.com/channels/1286329202723000431/1478530846544625704)\n\n' +
           '🎊 **Gratulujeme!**\n' +
           'Těšíme se na tvé budoucí působení v našem týmu a na tvé RP!\n',
       )
