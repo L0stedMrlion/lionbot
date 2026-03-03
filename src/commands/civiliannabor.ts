@@ -37,7 +37,7 @@ export async function run({ interaction }: SlashCommandProps) {
     });
   }
 
-  const targetUser = interaction.options.getUser('uzivatel', true);
+  const targetUser = interaction.options.getUser('user', true);
 
   try {
     const embed = new EmbedBuilder()
