@@ -15,7 +15,7 @@ import {
 
 export const data: CommandData = {
   name: 'lspdinvite',
-  description: 'Získej pozvánku na Discord server LSPD!',
+  description: "Sends invite to LSPD Discord",
   integration_types: [1],
   contexts: [1, 2],
 };
@@ -56,3 +56,4 @@ export const options: CommandOptions = {
   botPermissions: [],
   deleted: false,
 };
+
