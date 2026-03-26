@@ -3,7 +3,15 @@ import type {
   SlashCommandProps,
   CommandOptions,
 } from 'commandkit';
-import { EmbedBuilder } from 'discord.js';
+import {
+  MessageFlags,
+  TextDisplayBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ThumbnailBuilder,
+  SectionBuilder,
+  ActionRowBuilder,
+} from 'discord.js';
 
 export const data: CommandData = {
   name: 'binding',
@@ -12,36 +20,45 @@ export const data: CommandData = {
   contexts: [0, 1, 2],
 };
 
-export function run({ interaction, client, handler }: SlashCommandProps) {
-  const embed = new EmbedBuilder()
-    .setTitle(
-      '<:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Binding',
-    )
-    .setDescription(
-      'Bindovat si věci na určité klávesy je občas jednoduše, naopak občas složité, níže máte sepsáno jak se binduje přes F8.',
-    )
-    .setColor('#ffb500')
-    .addFields(
-      {
-        name: '⌨️ Vytvoření bindu',
-        value:
-          'Otevřete konzoli F8 a zadejte: ```bind keyboard <key> "e whistle"```\nPro nastavení bindů na jednu klávesu použijte: ```bind keyboard <key> "e whistle; e sit; panic"```',
-      },
-      {
-        name: '⌨️ Odstranění bindu',
-        value: 'Otevřete konzoli F8 a zadejte: ```unbind keyboard <key>```',
-      },
-      {
-        name: '🔑 Key',
-        value:
-          'Vždy <key> nahradte nějakou klávesou, všechny jsou vypsané [zde](https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/).',
-      },
-    )
-    .setFooter({
-      text: '🦁 Lion Police Roleplay',
-    });
+export function run({ interaction }: SlashCommandProps) {
+  const textComponent = new TextDisplayBuilder().setContent(
+    '# <:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Binding\n\n' +
+      'Bindovat si věci na určité klávesy je občas jednoduše, naopak občas složité, níže máte sepsáno jak se binduje přes F8.\n\n' +
+      '### ⌨️ Vytvoření bindu\n' +
+      'Otevřete konzoli F8 a zadejte:\n' +
+      '```\nbind keyboard <key> "e whistle"\n```\n' +
+      'Pro nastavení bindů na jednu klávesu použijte:\n' +
+      '```\nbind keyboard <key> "e whistle; e sit; panic"\n```\n' +
+      '### ⌨️ Odstranění bindu\n' +
+      'Otevřete konzoli F8 a zadejte:\n' +
+      '```\nunbind keyboard <key>\n```\n' +
+      '### 🔑 Key\n' +
+      'Vždy `<key>` nahradte nějakou klávesou, všechny jsou vypsané v oficiální dokumentaci.',
+  );
 
-  interaction.reply({ embeds: [embed] });
+  const thumbnailComponent = new ThumbnailBuilder({
+    media: {
+      url: 'https://cdn.discordapp.com/emojis/1292049154402549762.png',
+    },
+  });
+
+  const button = new ButtonBuilder()
+    .setLabel('⌨️ Keyboard Reference')
+    .setStyle(ButtonStyle.Link)
+    .setURL(
+      'https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/',
+    );
+
+  const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+
+  const sectionComponent = new SectionBuilder()
+    .addTextDisplayComponents(textComponent)
+    .setThumbnailAccessory(thumbnailComponent);
+
+  interaction.reply({
+    flags: MessageFlags.IsComponentsV2,
+    components: [sectionComponent, actionRow],
+  });
 }
 
 export const options: CommandOptions = {
