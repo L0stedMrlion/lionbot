@@ -7,6 +7,7 @@ import {
   ThumbnailBuilder,
   SectionBuilder,
   ActionRowBuilder,
+  EmbedBuilder,
 } from 'discord.js';
 import type {
   CommandData,
@@ -19,9 +20,8 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 const BADGE_SHEET_NAME = '⭐ Čísla odznaků';
 const MAIN_SHEET_NAME = '👮 Struktura LSPD';
 
-const ALLOWED_USERS = (
-  process.env.ALLOWED_HIRE_USERS || '735501561819824218'
-).split(',');
+const REQUIRED_ROLE_ID = '1486821536957730967';
+const REQUIRED_GUILD_ID = '1286329202723000431';
 
 export const data: CommandData = {
   name: 'hire',
@@ -43,9 +43,14 @@ export const data: CommandData = {
 };
 
 export async function run({ interaction }: SlashCommandProps) {
-  if (!ALLOWED_USERS.includes(interaction.user.id)) {
+  const member = interaction.guild?.members.cache.get(interaction.user.id);
+  const hasRole = member?.roles.cache.has(REQUIRED_ROLE_ID);
+  const isCorrectGuild = interaction.guildId === REQUIRED_GUILD_ID;
+
+  if (!isCorrectGuild || !hasRole) {
     return interaction.reply({
-      content: '❌ You do not have permission to use this command.',
+      content:
+        '❌ You do not have permission to use this command (Required role/server missing).',
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -184,14 +189,35 @@ export async function run({ interaction }: SlashCommandProps) {
       [[true, true, date]],
     );
 
+    const formattedCallsign = (callsign || 'N/A')
+      .replace('Lincoln ', 'L-')
+      .replace('Lincoln-', 'L-')
+      .replace('Lincoln', 'L-');
+
+    const textComponent = new TextDisplayBuilder().setContent(
+      `# 👮‍♂️ New Officer Hired!\n\n` +
+        `The records have been successfully updated in all of the sheets.\n\n` +
+        `### 📋 Identification Details\n` +
+        `> 🆔 **Callsign:** \`${callsign || 'N/A'}\`\n` +
+        `> 🎖️ **Badge Number:** \`${badgeFound}\`\n` +
+        `> 🕒 **Assigned Shift:** \`${shiftInfo || 'None assigned'}\`\n\n` +
+        `### ⚡ Quick Copy\n` +
+        `\`\`\`\n[${formattedCallsign}] ${icName} (${badgeFound})\n\`\`\`\n`,
+    );
+
+    const thumbnailComponent = new ThumbnailBuilder({
+      media: {
+        url: 'https://cdn.discordapp.com/attachments/1287133753356980329/1369380612921757766/LSPD1.png?ex=681ba693&is=681a5513&hm=e5d493a0352789095ff08c699f2c24f3617b51e9cccbf8bd4cf93639e9a1d54a&',
+      },
+    });
+
+    const section = new SectionBuilder()
+      .addTextDisplayComponents(textComponent)
+      .setThumbnailAccessory(thumbnailComponent);
+
     await interaction.editReply({
-      content:
-        `✅ **Successfully hired ${icName}!**\n\n` +
-        `🎖️ **Badge Info:** Row ${badgeRowIndex} (Badge #${badgeFound})\n` +
-        `📋 **Main Info:** Row ${mainRowIndex}\n` +
-        `🆔 **Callsign:** ${callsign || 'N/A'}\n` +
-        `🕒 **Shift:** ${shiftInfo || 'None assigned'}\n\n` +
-        `The record has been updated in both sheets.`,
+      flags: MessageFlags.IsComponentsV2,
+      components: [section],
     });
   } catch (error: any) {
     console.error('Sheet Error:', error);
