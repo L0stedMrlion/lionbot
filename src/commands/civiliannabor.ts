@@ -1,7 +1,13 @@
 import {
   ApplicationCommandOptionType,
   MessageFlags,
-  EmbedBuilder,
+  TextDisplayBuilder,
+  ThumbnailBuilder,
+  SectionBuilder,
+  MediaGalleryBuilder,
+  MediaGalleryItemBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
 } from 'discord.js';
 import type {
   CommandData,
@@ -40,36 +46,47 @@ export async function run({ interaction }: SlashCommandProps) {
   const targetUser = interaction.options.getUser('user', true);
 
   try {
-    const embed = new EmbedBuilder()
-      .setTitle('🟩 LION POLICE ROLEPLAY - CIVILIAN NÁBOR 🟩')
-      .setThumbnail(
-        'https://cdn.discordapp.com/attachments/1287133753356980329/1455720760088592476/lion_civ_logo.png?ex=69a8b1ec&is=69a7606c&hm=a108a945d8b2d4957e8ced9629b36d0e80718d09873fc4242634fd6e8c760a9f&',
-      )
-      .setDescription(
-        '### 📄 Oficiální vyrozumění o výsledku náboru\n\n' +
-          '> S velkým potěšením Vám oznamujeme, že Vaše přihláška byla vyhodnocena kladně a byl jsi **PŘIJAT** ✅! 🎉\n\n' +
-          'Nyní tě čeká **vstupní pohovor**. Veškeré podrobnosti a instrukce, jak dále postupovat, nalezneš v **připnuté zprávě** v kanále níže:\n\n' +
-          '✨ **Odkaz na kanál, kde zjistíš více**\n' +
-          '👉 [Klikni zde pro přejití do kanálu](https://discord.com/channels/1286329202723000431/1478530846544625704)\n\n' +
-          '🎊 **Gratulujeme!**\n' +
-          'Těšíme se na tvé budoucí působení v našem týmu a na tvé RP!\n',
-      )
-      .addFields({
-        name: '👤 Tuto zprávu odeslal:',
-        value: `<@${interaction.user.id}>`,
-        inline: true,
-      })
-      .setImage('https://media.tenor.com/xDHCe07zrocAAAAC/congrats-minions.gif')
-      .setColor(0x256d25)
-      .setFooter({
-        text: '🦁 Lion Police Roleplay - Civilian Nábor',
-        iconURL:
-          'https://cdn.discordapp.com/attachments/1287133753356980329/1453454984019578900/policelogo.png?ex=69a87a70&is=69a728f0&hm=75e41e20539bf8af48602f2cfc52e99cefc868fc1b90ff7c37dcfcd1e4968036&',
-      })
-      .setTimestamp();
+    const thumbnailComponent = new ThumbnailBuilder({
+      media: {
+        url: 'https://r2.fivemanage.com/zlqBQerSIEakQVh7POEZe/policelogo.png',
+      },
+    });
+
+    const titleText = new TextDisplayBuilder().setContent(
+      '## 🟩 LION POLICE ROLEPLAY - CIVILIAN NÁBOR 🟩',
+    );
+
+    const bodyText = new TextDisplayBuilder().setContent(
+      '### 📄 Oficiální vyrozumění o výsledku náboru\n\n' +
+        '> S velkým potěšením Vám oznamujeme, že Vaše přihláška byla vyhodnocena kladně a byl jsi **PŘIJAT** ✅! 🎉\n\n' +
+        'Nyní tě čeká **vstupní pohovor**. Veškeré podrobnosti a instrukce, jak dále postupovat, nalezneš v **připnuté zprávě** v kanále níže:\n\n' +
+        '✨ **Odkaz na kanál, kde zjistíš více**\n' +
+        '👉 [Klikni zde pro přejití do kanálu](https://discord.com/channels/1286329202723000431/1478530846544625704)\n\n' +
+        '🎊 **Gratulujeme!**\n' +
+        'Těšíme se na tvé budoucí působení v našem týmu a na tvé RP!',
+    );
+
+    const sectionComponent = new SectionBuilder()
+      .addTextDisplayComponents(titleText, bodyText)
+      .setThumbnailAccessory(thumbnailComponent);
+
+    const separator = new SeparatorBuilder().setSpacing(
+      SeparatorSpacingSize.Small,
+    );
+
+    const senderText = new TextDisplayBuilder().setContent(
+      `👤 **Tuto zprávu odeslal:** <@${interaction.user.id}>`,
+    );
+
+    const gifGallery = new MediaGalleryBuilder().addItems(
+      new MediaGalleryItemBuilder().setURL(
+        'https://media.tenor.com/xDHCe07zrocAAAAC/congrats-minions.gif',
+      ),
+    );
 
     await targetUser.send({
-      embeds: [embed],
+      flags: MessageFlags.IsComponentsV2,
+      components: [sectionComponent, separator, senderText, gifGallery],
     });
 
     const GUILD_ID = '1286329202723000431';
