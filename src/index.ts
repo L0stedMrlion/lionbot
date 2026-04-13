@@ -56,12 +56,15 @@ const CHANNEL_IDS = {
   stats: '1429495007584194704',
   online: '1429495249855840538',
   duty_times: '1460019305448996894',
+  ems_fd: '1493138137575325787',
 };
 
 interface ServerStats extends RowDataPacket {
   police_count: number;
   civ_count: number;
   total_players: number;
+  EMS: number;
+  fire: number;
 }
 
 interface DutyTimeStats extends RowDataPacket {
@@ -71,14 +74,14 @@ interface DutyTimeStats extends RowDataPacket {
 async function updateServerStats() {
   try {
     const [results] = await db.query<ServerStats[]>(
-      'SELECT police_count, civ_count, total_players FROM liveserverstats',
+      'SELECT police_count, civ_count, total_players, EMS, fire FROM liveserverstats',
     );
     if (!results.length) {
       console.log('⚠️ No stats found in database');
       return;
     }
 
-    const { police_count, civ_count, total_players } = results[0];
+    const { police_count, civ_count, total_players, EMS, fire } = results[0];
 
     const statsChannel = client.channels.cache.get(CHANNEL_IDS.stats);
     if (statsChannel && 'setName' in statsChannel) {
@@ -98,6 +101,16 @@ async function updateServerStats() {
       console.log(`✅ Updated online channel: ${total_players} players`);
     } else {
       console.error('❌ Online channel not found or cannot be renamed');
+    }
+
+    const emsFdChannel = client.channels.cache.get(CHANNEL_IDS.ems_fd);
+    if (emsFdChannel && 'setName' in emsFdChannel) {
+      await emsFdChannel.setName(`🚑 EMS: ${EMS || 0} | 🚒 FD: ${fire || 0}`);
+      console.log(
+        `✅ Updated EMS/FD channel: EMS: ${EMS || 0}, FD: ${fire || 0}`,
+      );
+    } else {
+      console.error('❌ EMS/FD channel not found or cannot be renamed');
     }
   } catch (err) {
     console.error('❌ Error updating server stats:', err);
