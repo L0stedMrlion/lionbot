@@ -11,13 +11,13 @@ export const data: CommandData = {
   contexts: [0, 1, 2],
 };
 
-export function run({ interaction, client, handler }: SlashCommandProps) {
+export function run({ interaction, client }: SlashCommandProps) {
   interaction.reply(`:ping_pong: Pong! ${client.ws.ping}ms`);
 }
 
 export const options: CommandOptions = {
   devOnly: false,
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
+  userPermissions: [],
+  botPermissions: [],
   deleted: false,
 };

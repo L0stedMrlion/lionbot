@@ -15,12 +15,12 @@ import {
 
 export const data: CommandData = {
   name: 'lspdinvite',
-  description: "Sends invite to LSPD Discord",
+  description: 'Sends invite to LSPD Discord',
   integration_types: [1],
   contexts: [1, 2],
 };
 
-export function run({ interaction, client, handler }: SlashCommandProps) {
+export function run({ interaction }: SlashCommandProps) {
   const inviteLink = 'https://discord.gg/mf4pjDRgqe';
 
   const textComponent = new TextDisplayBuilder().setContent(
@@ -56,4 +56,3 @@ export const options: CommandOptions = {
   botPermissions: [],
   deleted: false,
 };
-

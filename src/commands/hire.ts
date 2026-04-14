@@ -7,7 +7,7 @@ import {
   ThumbnailBuilder,
   SectionBuilder,
   ActionRowBuilder,
-  EmbedBuilder,
+  GuildMemberRoleManager,
 } from 'discord.js';
 import type {
   CommandData,
@@ -15,13 +15,9 @@ import type {
   CommandOptions,
 } from 'commandkit';
 import { readSheet, updateSheet } from '../utils/googleSheets';
+import { config } from '../config';
 
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const BADGE_SHEET_NAME = '⭐ Čísla odznaků';
-const MAIN_SHEET_NAME = '👮 Struktura LSPD';
-
-const REQUIRED_ROLE_ID = '1486821536957730967';
-const REQUIRED_GUILD_ID = '1286329202723000431';
+const { spreadsheetId, badgeSheetName, mainSheetName } = config.googleSheets;
 
 export const data: CommandData = {
   name: 'hire',
@@ -43,9 +39,11 @@ export const data: CommandData = {
 };
 
 export async function run({ interaction }: SlashCommandProps) {
-  const member = interaction.guild?.members.cache.get(interaction.user.id);
-  const hasRole = member?.roles.cache.has(REQUIRED_ROLE_ID);
-  const isCorrectGuild = interaction.guildId === REQUIRED_GUILD_ID;
+  const member = interaction.member;
+  const hasRole = (
+    member?.roles as GuildMemberRoleManager | undefined
+  )?.cache.has(config.discord.roles.hireAllowed);
+  const isCorrectGuild = interaction.guildId === config.discord.guilds.main;
 
   if (!isCorrectGuild || !hasRole) {
     return interaction.reply({
@@ -63,11 +61,11 @@ export async function run({ interaction }: SlashCommandProps) {
   const date = `'${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()}`;
 
   const inviteLink = 'https://discord.gg/mf4pjDRgqe';
-  const textComponent = new TextDisplayBuilder().setContent(
+  const textComponentInvite = new TextDisplayBuilder().setContent(
     '# 👮‍♂️ Pozvánka na LSPD Discord\n\n\nPřipoj se na Discord pomocí tlačítka níže. Dále postupuj podle instrukcí osoby, které Vás nabírá.\n\n**🔗 Další odkazy**\n[Lion Police RP - Discord](https://discord.gg/rrZ7RpEUkb) | [Guide](https://guide.lionsproject.eu/)',
   );
 
-  const button = new ButtonBuilder()
+  const buttonInvite = new ButtonBuilder()
     .setLabel('👮 Připojit se na LSPD Discord')
     .setStyle(ButtonStyle.Link)
     .setURL(inviteLink);
@@ -78,35 +76,34 @@ export async function run({ interaction }: SlashCommandProps) {
     },
   });
 
-  const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+  const actionRowInvite = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    buttonInvite,
+  );
 
-  const sectionComponent = new SectionBuilder()
-    .addTextDisplayComponents(textComponent)
+  const sectionComponentInvite = new SectionBuilder()
+    .addTextDisplayComponents(textComponentInvite)
     .setThumbnailAccessory(thumbnailComponent);
 
   try {
     await targetUser.send({
       flags: MessageFlags.IsComponentsV2,
-      components: [sectionComponent, actionRow],
+      components: [sectionComponentInvite, actionRowInvite],
     });
   } catch (dmError) {
     console.warn(`Could not send DM to ${targetUser.tag}:`, dmError);
   }
 
   try {
-    if (!SPREADSHEET_ID) {
+    if (!spreadsheetId) {
       return interaction.editReply(
         '❌ Spreadsheet ID is not configured in .env',
       );
     }
 
-    const badgeRows = await readSheet(
-      SPREADSHEET_ID,
-      `${BADGE_SHEET_NAME}!G:J`,
-    );
+    const badgeRows = await readSheet(spreadsheetId, `${badgeSheetName}!G:J`);
     if (!badgeRows || badgeRows.length === 0) {
       return interaction.editReply(
-        `❌ Could not read the Badge Sheet ("${BADGE_SHEET_NAME}").`,
+        `❌ Could not read the Badge Sheet ("${badgeSheetName}").`,
       );
     }
 
@@ -136,15 +133,13 @@ export async function run({ interaction }: SlashCommandProps) {
       );
     }
 
-    if (!SPREADSHEET_ID) return;
-
     const mainRows = await readSheet(
-      SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!A106:J185`,
+      spreadsheetId,
+      `${mainSheetName}!A106:J185`,
     );
     if (!mainRows || mainRows.length === 0) {
       return interaction.editReply(
-        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A106:J185. Check the name!`,
+        `❌ Could not read the Main Sheet ("${mainSheetName}") at range A106:J185. Check the name!`,
       );
     }
 
@@ -172,20 +167,20 @@ export async function run({ interaction }: SlashCommandProps) {
     }
 
     await updateSheet(
-      SPREADSHEET_ID,
-      `${BADGE_SHEET_NAME}!H${badgeRowIndex}:J${badgeRowIndex}`,
+      spreadsheetId,
+      `${badgeSheetName}!H${badgeRowIndex}:J${badgeRowIndex}`,
       [[icName, targetUser.username, date]],
     );
 
     await updateSheet(
-      SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!B${mainRowIndex}:E${mainRowIndex}`,
+      spreadsheetId,
+      `${mainSheetName}!B${mainRowIndex}:E${mainRowIndex}`,
       [[badgeFound, icName, targetUser.username, true]],
     );
 
     await updateSheet(
-      SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!H${mainRowIndex}:J${mainRowIndex}`,
+      spreadsheetId,
+      `${mainSheetName}!H${mainRowIndex}:J${mainRowIndex}`,
       [[true, true, date]],
     );
 
@@ -194,7 +189,7 @@ export async function run({ interaction }: SlashCommandProps) {
       .replace('Lincoln-', 'L-')
       .replace('Lincoln', 'L-');
 
-    const textComponent = new TextDisplayBuilder().setContent(
+    const textComponentSuccess = new TextDisplayBuilder().setContent(
       `# 👮‍♂️ New Officer Hired!\n\n` +
         `The records have been successfully updated in all of the sheets.\n\n` +
         `### 📋 Identification Details\n` +
@@ -205,19 +200,13 @@ export async function run({ interaction }: SlashCommandProps) {
         `\`\`\`\n[${formattedCallsign}] ${icName} (${badgeFound})\n\`\`\`\n`,
     );
 
-    const thumbnailComponent = new ThumbnailBuilder({
-      media: {
-        url: 'https://cdn.discordapp.com/attachments/1287133753356980329/1369380612921757766/LSPD1.png?ex=681ba693&is=681a5513&hm=e5d493a0352789095ff08c699f2c24f3617b51e9cccbf8bd4cf93639e9a1d54a&',
-      },
-    });
-
-    const section = new SectionBuilder()
-      .addTextDisplayComponents(textComponent)
+    const sectionSuccess = new SectionBuilder()
+      .addTextDisplayComponents(textComponentSuccess)
       .setThumbnailAccessory(thumbnailComponent);
 
     await interaction.editReply({
       flags: MessageFlags.IsComponentsV2,
-      components: [section],
+      components: [sectionSuccess],
     });
   } catch (error: any) {
     console.error('Sheet Error:', error);
