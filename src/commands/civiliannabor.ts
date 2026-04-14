@@ -14,6 +14,7 @@ import type {
   SlashCommandProps,
   CommandOptions,
 } from 'commandkit';
+import { config } from '../config';
 
 export const data: CommandData = {
   name: 'vyhodnocenicivnabor',
@@ -28,12 +29,7 @@ export const data: CommandData = {
   ],
 };
 
-const ALLOWED_USER_IDS = [
-  '710549603216261141',
-  '769892516152999957',
-  '735501561819824218',
-  '432501487361327114',
-];
+const ALLOWED_USER_IDS = config.discord.allowedUserIds.civilianNabor;
 
 export async function run({ interaction }: SlashCommandProps) {
   if (!ALLOWED_USER_IDS.includes(interaction.user.id)) {
@@ -89,8 +85,8 @@ export async function run({ interaction }: SlashCommandProps) {
       components: [sectionComponent, separator, senderText, gifGallery],
     });
 
-    const GUILD_ID = '1286329202723000431';
-    const ROLE_ID = '1478009779531022358';
+    const GUILD_ID = config.discord.guilds.main;
+    const ROLE_ID = config.discord.roles.civilianRecruitment;
 
     const guild = interaction.client.guilds.cache.get(GUILD_ID);
     let roleAdded = false;

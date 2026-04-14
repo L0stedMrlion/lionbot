@@ -1,10 +1,11 @@
-import { MessageFlags } from 'discord.js';
+import { MessageFlags, GuildMemberRoleManager } from 'discord.js';
 import type {
   CommandData,
   SlashCommandProps,
   CommandOptions,
 } from 'commandkit';
 import axios from 'axios';
+import { config } from '../config';
 
 export const data: CommandData = {
   name: 'claimciv',
@@ -14,13 +15,14 @@ export const data: CommandData = {
 };
 
 export async function run({ interaction }: SlashCommandProps) {
-  const REQUIRED_ROLE_ID = '1375531258871939153';
   const member = interaction.member;
 
   if (
     !member ||
     !('roles' in member) ||
-    !(member.roles as any).cache.has(REQUIRED_ROLE_ID)
+    !(member.roles as GuildMemberRoleManager).cache.has(
+      config.discord.roles.claimCivRequired,
+    )
   ) {
     return interaction.reply({
       content: "❌ You can't use this command. You are not civilian.",
@@ -32,11 +34,8 @@ export async function run({ interaction }: SlashCommandProps) {
 
   const discordId = interaction.user.id;
 
-  const serverIp = process.env.IP || 'localhost';
-  const serverPort = process.env.GAMESERVER_PORT || '30120';
-  const resourceName = process.env.GAMESERVER_RESOURCE_NAME || 'lion_utilities';
-  const serverUrl = `http://${serverIp}:${serverPort}/${resourceName}`;
-  const apiKey = process.env.GAMESERVER_API_KEY;
+  const { ip, port, resourceName, apiKey } = config.gameServer;
+  const serverUrl = `http://${ip}:${port}/${resourceName}`;
 
   try {
     const response = await axios.post(
@@ -59,9 +58,14 @@ export async function run({ interaction }: SlashCommandProps) {
     let errorMessage =
       '❌ Failed to contact the game server. Ensure you are online.';
 
-    if (error.response && error.response.data && error.response.data.message) {
-      if (error.response.data.message === 'Player is not online') {
+    if (axios.isAxiosError(error)) {
+      if (error.code === 'ECONNABORTED') {
+        errorMessage =
+          '❌ Connection to the game server timed out. Please try again.';
+      } else if (error.response?.data?.message === 'Player is not online') {
         errorMessage = `❌ Player **${interaction.user.username}** was not found on the server. You must be in-game with Discord running.`;
+      } else if (error.response) {
+        errorMessage = `❌ Game server error: ${error.response.data.message || error.message}`;
       }
     }
 
