@@ -140,17 +140,16 @@ export async function run({ interaction }: SlashCommandProps) {
 
     const mainRows = await readSheet(
       SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!A106:J185`,
+      `${MAIN_SHEET_NAME}!A106:K185`,
     );
     if (!mainRows || mainRows.length === 0) {
       return interaction.editReply(
-        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A106:J185. Check the name!`,
+        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A106:K185. Check the name!`,
       );
     }
 
     let mainRowIndex = -1;
     let callsign = '';
-    let shiftInfo = '';
 
     for (let i = 0; i < mainRows.length; i++) {
       const b = mainRows[i][1];
@@ -160,7 +159,6 @@ export async function run({ interaction }: SlashCommandProps) {
       if (!b && !c && !d) {
         mainRowIndex = 106 + i;
         callsign = mainRows[i][0];
-        shiftInfo = mainRows[i][6];
         break;
       }
     }
@@ -185,8 +183,8 @@ export async function run({ interaction }: SlashCommandProps) {
 
     await updateSheet(
       SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!H${mainRowIndex}:J${mainRowIndex}`,
-      [[true, true, date]],
+      `${MAIN_SHEET_NAME}!H${mainRowIndex}:K${mainRowIndex}`,
+      [['', true, true, date]],
     );
 
     const formattedCallsign = (callsign || 'N/A')
@@ -199,8 +197,7 @@ export async function run({ interaction }: SlashCommandProps) {
         `The records have been successfully updated in all of the sheets.\n\n` +
         `### 📋 Identification Details\n` +
         `> 🆔 **Callsign:** \`${callsign || 'N/A'}\`\n` +
-        `> 🎖️ **Badge Number:** \`${badgeFound}\`\n` +
-        `> 🕒 **Assigned Shift:** \`${shiftInfo || 'None assigned'}\`\n\n` +
+        `> 🎖️ **Badge Number:** \`${badgeFound}\`\n\n` +
         `### ⚡ Quick Copy\n` +
         `\`\`\`\n[${formattedCallsign}] ${icName} (${badgeFound})\n\`\`\`\n`,
     );
