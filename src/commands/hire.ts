@@ -55,7 +55,14 @@ export async function run({ interaction }: SlashCommandProps) {
     });
   }
 
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  } catch (error) {
+    console.warn(
+      '⚠️ Could not defer interaction (likely handled by another running bot instance).',
+    );
+    return;
+  }
 
   const targetUser = interaction.options.getUser('user', true);
   const icName = interaction.options.getString('ic-name', true);
@@ -158,7 +165,7 @@ export async function run({ interaction }: SlashCommandProps) {
 
       if (!b && !c && !d) {
         mainRowIndex = 106 + i;
-        callsign = mainRows[i][0];
+        callsign = (mainRows[i][0] || '').trim();
         break;
       }
     }
@@ -188,9 +195,12 @@ export async function run({ interaction }: SlashCommandProps) {
     );
 
     const formattedCallsign = (callsign || 'N/A')
-      .replace('Lincoln ', 'L-')
-      .replace('Lincoln-', 'L-')
-      .replace('Lincoln', 'L-');
+      .trim()
+      .replace(/Lincoln\s*-?\s*/gi, 'L-')
+      .replace(/\s+/g, ' ');
+
+    const cleanICName = icName.trim().replace(/\s+/g, ' ');
+    const cleanBadge = badgeFound.toString().trim();
 
     const textComponent = new TextDisplayBuilder().setContent(
       `# 👮‍♂️ New Officer Hired!\n\n` +
@@ -199,7 +209,7 @@ export async function run({ interaction }: SlashCommandProps) {
         `> 🆔 **Callsign:** \`${callsign || 'N/A'}\`\n` +
         `> 🎖️ **Badge Number:** \`${badgeFound}\`\n\n` +
         `### ⚡ Quick Copy\n` +
-        `\`\`\`\n[${formattedCallsign}] ${icName} (${badgeFound})\n\`\`\`\n`,
+        `\`\`\`\n[${formattedCallsign}] ${cleanICName} (${cleanBadge})\n\`\`\`\n`,
     );
 
     const thumbnailComponent = new ThumbnailBuilder({
