@@ -86,7 +86,7 @@ async function updateServerStats() {
     const statsChannel = client.channels.cache.get(CHANNEL_IDS.stats);
     if (statsChannel && 'setName' in statsChannel) {
       await statsChannel.setName(
-        `👮 Police: ${police_count} | 🟩 Civs: ${civ_count}`,
+        `👮 Police: ${police_count} | 🟩 Verf. Civs: ${civ_count}`,
       );
       console.log(
         `✅ Updated stats channel: Police: ${police_count}, Civs: ${civ_count}`,
