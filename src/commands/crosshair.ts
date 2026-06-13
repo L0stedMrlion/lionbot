@@ -22,7 +22,7 @@ export const data: CommandData = {
 
 export function run({ interaction }: SlashCommandProps) {
   const textComponent = new TextDisplayBuilder().setContent(
-    '# <:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Crosshair\n\n' +
+    '# 🎯 Lion Police Roleplay - Crosshair\n\n' +
       'Věděl jsi, že si přes F8 můžeš nastavit custom crosshair, který ti na serveru pomůže? Níže si přečti jak ho můžeš zapnout.\n\n' +
       '### 📌 Novinka — In-game příkaz\n' +
       'Nově si můžeš zobrazit tuto informaci přímo **ve hře** pomocí příkazu `/crosshair` v chatu!\n\n' +
