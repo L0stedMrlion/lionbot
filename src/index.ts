@@ -2,7 +2,8 @@ import 'dotenv/config';
 import { Client, IntentsBitField } from 'discord.js';
 import { CommandKit } from 'commandkit';
 import path from 'path';
-import mysql, { RowDataPacket } from 'mysql2/promise';
+import { RowDataPacket } from 'mysql2/promise';
+import db from './utils/db';
 
 const client = new Client({
   intents: [
@@ -13,14 +14,6 @@ const client = new Client({
   ],
 });
 
-const db = mysql.createPool({
-  host: process.env.IP,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
 
 (async () => {
   try {
