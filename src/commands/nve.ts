@@ -64,10 +64,9 @@ export async function run({ interaction }: SlashCommandProps) {
   collector.on('collect', async (i) => {
     if (i.customId === 'nve_config') {
       const configText = new TextDisplayBuilder().setContent(
-        '### 🗂️ Aktivní Addony (Mrlion Configuration)\n' +
+        '### 🗂️ Aktivní Addony (Mrlionova Configuration)\n' +
           '```diff\n' +
           '+ Snížena snowflake intensity\n' +
-          '+ Darker Nights\n' +
           '+ 2020 Weather Filter\n' +
           '+ Animated Gas stations & ATMs\n' +
           '+ Weather Override\n' +
