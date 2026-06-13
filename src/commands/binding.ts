@@ -22,7 +22,7 @@ export const data: CommandData = {
 
 export function run({ interaction }: SlashCommandProps) {
   const textComponent = new TextDisplayBuilder().setContent(
-    '# <:lionpoliceroleplay:1292049154402549762> Lion Police Roleplay - Binding\n\n' +
+    '# ⌨️ Lion Police Roleplay - Binding\n\n' +
       'Bindovat si věci na určité klávesy je občas jednoduše, naopak občas složité, níže máte sepsáno jak se binduje přes F8.\n\n' +
       '### ⌨️ Vytvoření bindu\n' +
       'Otevřete konzoli F8 a zadejte:\n' +
