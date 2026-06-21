@@ -20,7 +20,7 @@ export const data: CommandData = {
 export async function run({ interaction }: SlashCommandProps) {
   const textComponent = new TextDisplayBuilder().setContent(
     '# 🌴 NaturalVision Evolved (NVE)\n\n' +
-      'NaturalVision Evolved  populární grafický mód pro GTA V, který výrazně vylepšuje vizuální stránku hry, osvětlení a textury. Níže najdeš link ke stažení.\n\n' +
+      'NaturalVision Evolved populární grafický mód pro GTA V, který výrazně vylepšuje vizuální stránku hry, osvětlení a textury. Níže najdeš link ke stažení.\n\n' +
       '### 📦 Informace o souboru\n' +
       '> 📅 **Verze:** September 2025\n',
   );
