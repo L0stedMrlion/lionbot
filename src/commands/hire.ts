@@ -71,7 +71,7 @@ export async function run({ interaction }: SlashCommandProps) {
 
   const inviteLink = 'https://discord.gg/mf4pjDRgqe';
   const textComponent = new TextDisplayBuilder().setContent(
-    '# 👮‍♂️ Pozvánka na LSPD Discord\n\n\nPřipoj se na Discord pomocí tlačítka níže. Dále postupuj podle instrukcí osoby, které Vás nabírá.\n\n**🔗 Další odkazy**\n[Lion Police RP - Discord](https://discord.gg/rrZ7RpEUkb) | [Guide](https://guide.lionsproject.eu/)',
+    `# 👮‍♂️ Pozvánka na LSPD Discord\n\n\nDobrý den <@${targetUser.id}>, \n\npro pokračování náboru se prosím připojte na Discord pomocí tlačítka níže. Dále postupujte podle instrukcí osoby, která Vás nabírá.\n\n**🔗 Užitečné odkazy**\n[Lion Police RP - Discord](https://discord.gg/rrZ7RpEUkb) | [Guide](https://guide.lionsproject.eu/)`,
   );
 
   const button = new ButtonBuilder()
