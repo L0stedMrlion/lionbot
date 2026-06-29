@@ -63,7 +63,7 @@ export async function run({ interaction }: SlashCommandProps) {
         'Zapnutí no-clipu si musíte nabindovat přes:\n' +
         '> Settings -> Keybindings -> FiveM -> (lion_utilities) Toggle no-clip // *Prázdný bind, něco tam dáte.*\n\n' +
         'V případě dotazů se neváhejte zeptat.\n\n' +
-        'Pro refresh pár dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n'+
+        'Pro refresh pár dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n\n'+
         'Hezký den,\n' +
         `<@${interaction.user.id}>`,
     );
