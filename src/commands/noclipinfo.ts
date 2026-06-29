@@ -55,8 +55,8 @@ export async function run({ interaction }: SlashCommandProps) {
     );
 
     const bodyText = new TextDisplayBuilder().setContent(
-      'Ahoj,\n\n' +
-        'aktuálně ti byla umožněna feature na **no-clip pro civy**. Používáním souhlasíš s pravidly, které byly sepsány Dezzym v oznámení a platnými pravidly na Guide:\n' +
+      'Zdravím,\n\n' +
+        'aktuálně ti byla umožněna feature na **no-clip pro civy**. Používáním souhlasíš s pravidly, které jsou sepsány na Guide.\n' +
         '👉 [Klikni zde pro zobrazení pravidel](https://guide.lionsproject.eu/civilian#no-clip)\n\n' +
         '⚠️ **Zneužití je PŘÍSNĚ TRESTÁNO!**\n\n' +
         '### ⚙️ Nastavení bindu:\n' +
