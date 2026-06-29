@@ -60,12 +60,12 @@ export async function run({ interaction }: SlashCommandProps) {
         '👉 [Klikni zde pro zobrazení pravidel](https://guide.lionsproject.eu/civilian#no-clip)\n\n' +
         '⚠️ **Zneužití je PŘÍSNĚ TRESTÁNO!**\n\n' +
         '### ⚙️ Nastavení bindu:\n' +
-        'Zapnutí no-clipu si musíš nabindovat přes:\n' +
+        'Zapnutí no-clipu si musíte nabindovat přes:\n' +
         '> Settings -> Keybindings -> FiveM -> (lion_utilities) Toggle no-clip // *Prázdný bind, něco tam dáte.*\n\n' +
         'V případě dotazů se neváhejte zeptat.\n\n' +
-        'Pro refresh pár dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.'+
+        'Pro refresh pár dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n'+
         'Hezký den,\n' +
-        'LionBot',
+        '<@${interaction.user.id}>',
     );
 
     const sectionComponent = new SectionBuilder()
