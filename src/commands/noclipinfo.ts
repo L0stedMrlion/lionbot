@@ -65,7 +65,7 @@ export async function run({ interaction }: SlashCommandProps) {
         'V případě dotazů se neváhejte zeptat.\n\n' +
         'Pro refresh pár dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n'+
         'Hezký den,\n' +
-        '<@${interaction.user.id}>',
+        `<@${interaction.user.id}>`,
     );
 
     const sectionComponent = new SectionBuilder()
