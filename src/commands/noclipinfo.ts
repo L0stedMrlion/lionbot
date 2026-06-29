@@ -51,7 +51,7 @@ export async function run({ interaction }: SlashCommandProps) {
     });
 
     const titleText = new TextDisplayBuilder().setContent(
-      '## 🦅 LION POLICE ROLEPLAY - NO-CLIP FEATURE 🦅',
+      '# 🦅 LION POLICE ROLEPLAY - NO-CLIP Feature',
     );
 
     const bodyText = new TextDisplayBuilder().setContent(
