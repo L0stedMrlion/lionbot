@@ -8,7 +8,7 @@ import axios from 'axios';
 
 export const data: CommandData = {
   name: 'claimciv',
-  description: 'Get civilian status directly in-game.',
+  description: 'Get civilian status directly in-game',
   integration_types: [0],
   contexts: [0],
 };
