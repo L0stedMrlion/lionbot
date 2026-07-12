@@ -45,7 +45,7 @@ function latencyBar(ms: number): string {
 export async function run({ interaction, client }: SlashCommandProps) {
   const sentAt = Date.now();
 
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply();
 
   const discordApiLatency = Date.now() - sentAt;
 
@@ -84,10 +84,7 @@ export async function run({ interaction, client }: SlashCommandProps) {
     .setSpacing(SeparatorSpacingSize.Small);
 
   const statusText = new TextDisplayBuilder().setContent(
-    '### ⚙️ Bot Status\n' +
-      `> **Uptime:** \`${uptime}\`\n` +
-      `> **Guilds:** \`${client.guilds.cache.size}\`\n` +
-      `> **Cached Users:** \`${client.users.cache.size}\``,
+    '### ⚙️ Bot Status\n' + `> **Uptime:** \`${uptime}\``,
   );
 
   const container = new ContainerBuilder()
