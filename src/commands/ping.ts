@@ -36,7 +36,7 @@ function formatUptime(ms: number): string {
 }
 
 function latencyBar(ms: number): string {
-  if (ms < 80) return '🟢 Excellent';
+  if (ms < 125) return '🟢 Excellent';
   if (ms < 150) return '🟡 Good';
   if (ms < 600) return '🟠 Moderate';
   return '🔴 Poor';
