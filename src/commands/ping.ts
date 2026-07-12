@@ -14,7 +14,7 @@ import db from '../utils/db';
 
 export const data: CommandData = {
   name: 'ping',
-  description: 'Shows detailed bot latency and status information.',
+  description: 'Shows detailed bot latency and status information',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
@@ -38,7 +38,7 @@ function formatUptime(ms: number): string {
 function latencyBar(ms: number): string {
   if (ms < 80) return '🟢 Excellent';
   if (ms < 150) return '🟡 Good';
-  if (ms < 300) return '🟠 Moderate';
+  if (ms < 600) return '🟠 Moderate';
   return '🔴 Poor';
 }
 
