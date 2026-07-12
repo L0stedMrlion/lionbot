@@ -3,21 +3,110 @@ import type {
   SlashCommandProps,
   CommandOptions,
 } from 'commandkit';
+import {
+  ContainerBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
+  TextDisplayBuilder,
+  MessageFlags,
+} from 'discord.js';
+import db from '../utils/db';
 
 export const data: CommandData = {
   name: 'ping',
-  description: 'Pong!',
+  description: 'Shows detailed bot latency and status information.',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
 
-export function run({ interaction, client, handler }: SlashCommandProps) {
-  interaction.reply(`:ping_pong: Pong! ${client.ws.ping}ms`);
+function formatUptime(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+}
+
+function latencyBar(ms: number): string {
+  if (ms < 80) return '🟢 Excellent';
+  if (ms < 150) return '🟡 Good';
+  if (ms < 300) return '🟠 Moderate';
+  return '🔴 Poor';
+}
+
+export async function run({ interaction, client }: SlashCommandProps) {
+  const sentAt = Date.now();
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const discordApiLatency = Date.now() - sentAt;
+
+  const dbStart = Date.now();
+  let dbLatency = -1;
+  let dbStatus = '🔴 Unreachable';
+
+  try {
+    await db.query('SELECT 1');
+    dbLatency = Date.now() - dbStart;
+    dbStatus = latencyBar(dbLatency);
+  } catch {
+    dbStatus = '🔴 Unreachable';
+  }
+
+  const wsLatency = client.ws.ping;
+  const uptime = formatUptime(client.uptime ?? 0);
+
+  const headerText = new TextDisplayBuilder().setContent(
+    '# 🏓 Pong!\nHere is a detailed overview of the bot latency and current status.',
+  );
+
+  const separator = new SeparatorBuilder()
+    .setDivider(true)
+    .setSpacing(SeparatorSpacingSize.Small);
+
+  const latencyText = new TextDisplayBuilder().setContent(
+    '### 📡 Latency\n' +
+      `> **Discord WS:** \`${wsLatency}ms\` — ${latencyBar(wsLatency)}\n` +
+      `> **Discord API:** \`${discordApiLatency}ms\` — ${latencyBar(discordApiLatency)}\n` +
+      `> **Database:** \`${dbLatency >= 0 ? `${dbLatency}ms` : 'N/A'}\` — ${dbStatus}`,
+  );
+
+  const separator2 = new SeparatorBuilder()
+    .setDivider(true)
+    .setSpacing(SeparatorSpacingSize.Small);
+
+  const statusText = new TextDisplayBuilder().setContent(
+    '### ⚙️ Bot Status\n' +
+      `> **Uptime:** \`${uptime}\`\n` +
+      `> **Guilds:** \`${client.guilds.cache.size}\`\n` +
+      `> **Cached Users:** \`${client.users.cache.size}\``,
+  );
+
+  const container = new ContainerBuilder().addComponents(
+    headerText,
+    separator,
+    latencyText,
+    separator2,
+    statusText,
+  );
+
+  await interaction.editReply({
+    flags: MessageFlags.IsComponentsV2,
+    components: [container],
+  });
 }
 
 export const options: CommandOptions = {
   devOnly: false,
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
+  userPermissions: [],
+  botPermissions: [],
   deleted: false,
 };
