@@ -25,7 +25,7 @@ const REQUIRED_GUILD_ID = '1286329202723000431';
 
 export const data: CommandData = {
   name: 'hire',
-  description: 'Hire a member and update both Badge and Main sheets.',
+  description: 'Hire a member and update both Badge and Main sheets',
   options: [
     {
       name: 'user',
