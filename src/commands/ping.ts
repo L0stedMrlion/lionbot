@@ -90,13 +90,12 @@ export async function run({ interaction, client }: SlashCommandProps) {
       `> **Cached Users:** \`${client.users.cache.size}\``,
   );
 
-  const container = new ContainerBuilder().addComponents(
-    headerText,
-    separator,
-    latencyText,
-    separator2,
-    statusText,
-  );
+  const container = new ContainerBuilder()
+    .addTextDisplayComponents(headerText)
+    .addSeparatorComponents(separator)
+    .addTextDisplayComponents(latencyText)
+    .addSeparatorComponents(separator2)
+    .addTextDisplayComponents(statusText);
 
   await interaction.editReply({
     flags: MessageFlags.IsComponentsV2,
