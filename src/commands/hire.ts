@@ -147,11 +147,11 @@ export async function run({ interaction }: SlashCommandProps) {
 
     const mainRows = await readSheet(
       SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!A108:K185`,
+      `${MAIN_SHEET_NAME}!A108:K187`,
     );
     if (!mainRows || mainRows.length === 0) {
       return interaction.editReply(
-        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A106:K185. Check the name!`,
+        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A108:K187. Check the name!`,
       );
     }
 
