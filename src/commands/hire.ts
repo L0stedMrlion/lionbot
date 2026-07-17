@@ -147,7 +147,7 @@ export async function run({ interaction }: SlashCommandProps) {
 
     const mainRows = await readSheet(
       SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!A106:K185`,
+      `${MAIN_SHEET_NAME}!A108:K185`,
     );
     if (!mainRows || mainRows.length === 0) {
       return interaction.editReply(
