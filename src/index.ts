@@ -120,7 +120,7 @@ async function updateServerStats() {
     const statsCategory = client.channels.cache.get(STATS_CATEGORY_ID);
     if (statsCategory && 'setName' in statsCategory) {
       const timestamp = getPragueTime();
-      await statsCategory.setName(`📊┃Server Live Stats (LAST UPDATE ${timestamp})`);
+      await statsCategory.setName(`📊┃Server Live Stats (LAST UPD: ${timestamp})`);
       console.log(`✅ Updated stats category timestamp: ${timestamp}`);
     } else {
       console.error('❌ Stats category not found or cannot be renamed');
