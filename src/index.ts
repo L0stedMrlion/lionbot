@@ -52,6 +52,17 @@ const CHANNEL_IDS = {
   ems_fd: '1493138137575325787',
 };
 
+const STATS_CATEGORY_ID = '1429494745960284240';
+
+function getPragueTime(): string {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Prague',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date());
+}
+
 interface ServerStats extends RowDataPacket {
   police_count: number;
   civ_count: number;
@@ -104,6 +115,15 @@ async function updateServerStats() {
       );
     } else {
       console.error('❌ EMS/FD channel not found or cannot be renamed');
+    }
+
+    const statsCategory = client.channels.cache.get(STATS_CATEGORY_ID);
+    if (statsCategory && 'setName' in statsCategory) {
+      const timestamp = getPragueTime();
+      await statsCategory.setName(`📊┃Server Live Stats (LAST UPDATE ${timestamp})`);
+      console.log(`✅ Updated stats category timestamp: ${timestamp}`);
+    } else {
+      console.error('❌ Stats category not found or cannot be renamed');
     }
   } catch (err) {
     console.error('❌ Error updating server stats:', err);
