@@ -164,7 +164,7 @@ for (let i = 0; i < mainRows.length; i++) {
   const d = mainRows[i][3];
 
   if (!b && !c && !d) {
-    mainRowIndex = 106 + i;
+    mainRowIndex = 108 + i;
     callsign = (mainRows[i][0] || '').trim();
     break;
   }
