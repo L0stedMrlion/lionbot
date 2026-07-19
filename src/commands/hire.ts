@@ -146,35 +146,35 @@ export async function run({ interaction }: SlashCommandProps) {
     if (!SPREADSHEET_ID) return;
 
     const mainRows = await readSheet(
-      SPREADSHEET_ID,
-      `${MAIN_SHEET_NAME}!A108:K187`,
-    );
-    if (!mainRows || mainRows.length === 0) {
-      return interaction.editReply(
-        `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A108:K187. Check the name!`,
-      );
-    }
+  SPREADSHEET_ID,
+  `${MAIN_SHEET_NAME}!A108:K187`,
+);
+if (!mainRows || mainRows.length === 0) {
+  return interaction.editReply(
+    `❌ Could not read the Main Sheet ("${MAIN_SHEET_NAME}") at range A108:K187. Check the name!`,
+  );
+}
 
-    let mainRowIndex = -1;
-    let callsign = '';
+let mainRowIndex = -1;
+let callsign = '';
 
-    for (let i = 0; i < mainRows.length; i++) {
-      const b = mainRows[i][1];
-      const c = mainRows[i][2];
-      const d = mainRows[i][3];
+for (let i = 0; i < mainRows.length; i++) {
+  const b = mainRows[i][1];
+  const c = mainRows[i][2];
+  const d = mainRows[i][3];
 
-      if (!b && !c && !d) {
-        mainRowIndex = 106 + i;
-        callsign = (mainRows[i][0] || '').trim();
-        break;
-      }
-    }
+  if (!b && !c && !d) {
+    mainRowIndex = 106 + i;
+    callsign = (mainRows[i][0] || '').trim();
+    break;
+  }
+}
 
-    if (mainRowIndex === -1) {
-      return interaction.editReply(
-        '❌ No free paths found in Main Sheet (Rows 106-185 where B, C, D are empty).',
-      );
-    }
+if (mainRowIndex === -1) {
+  return interaction.editReply(
+    '❌ No free paths found in Main Sheet (Rows 106-185 where B, C, D are empty).',
+  );
+}
 
     await updateSheet(
       SPREADSHEET_ID,
