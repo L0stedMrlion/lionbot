@@ -22,7 +22,7 @@ export const data: CommandData = {
 
 export function run({ interaction }: SlashCommandProps) {
   const textComponent = new TextDisplayBuilder().setContent(
-    '# 🗑️ Lion Police Roleplay – Smazání cache\n\n' +
+    '# 🗑️ Lion Police Roleplay - Smazání cache\n\n' +
       'Smazání cache může vyřešit problémy s načítáním serveru, texturami a dalšími problémy.\n\n' +
       '### 1. Vypněte FiveM\n' +
       'Nejdříve kompletně vypněte FiveM, včetně procesu v pozadí. Toto lze skontrolovat pomocí Task Manageru stisknutím `Ctrl + Shift + Esc`, ale není nutno to dělat.\n\n' +
