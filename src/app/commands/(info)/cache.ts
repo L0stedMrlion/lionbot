@@ -1,7 +1,7 @@
 import type {
   CommandData,
-  SlashCommandProps,
-  CommandOptions,
+  ChatInputCommandContext,
+  CommandMetadata,
 } from 'commandkit';
 import {
   MessageFlags,
@@ -13,14 +13,14 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 
-export const data: CommandData = {
+export const command: CommandData = {
   name: 'cache',
   description: 'Sends instructions for deleting FiveM cache',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
 
-export function run({ interaction }: SlashCommandProps) {
+export function chatInput({ interaction }: ChatInputCommandContext) {
   const textComponent = new TextDisplayBuilder().setContent(
     '# 🗑️ Lion Police Roleplay - Smazání cache\n\n' +
       'Smazání cache může vyřešit problémy s načítáním serveru, texturami a dalšími problémy.\n\n' +
@@ -67,9 +67,7 @@ export function run({ interaction }: SlashCommandProps) {
   });
 }
 
-export const options: CommandOptions = {
-  devOnly: false,
+export const metadata: CommandMetadata = {
   userPermissions: ['Administrator', 'AddReactions'],
   botPermissions: ['Administrator', 'AddReactions'],
-  deleted: false,
 };

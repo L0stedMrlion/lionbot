@@ -1,5 +1,5 @@
+import type { EventHandler } from 'commandkit';
 import {
-  GuildMember,
   MessageFlags,
   TextDisplayBuilder,
   ButtonBuilder,
@@ -9,7 +9,7 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 
-export default async function (member: GuildMember) {
+const handler: EventHandler<'guildMemberAdd'> = async (member) => {
   const inviteLink =
     'https://discord.com/channels/1286329202723000431/1420791609481756672';
 
@@ -55,4 +55,6 @@ export default async function (member: GuildMember) {
   } catch (error) {
     console.error(`❌ Failed to send welcome DM to ${member.user.tag}:`, error);
   }
-}
+};
+
+export default handler;

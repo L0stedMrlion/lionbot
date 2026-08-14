@@ -1,8 +1,4 @@
-import type {
-  CommandData,
-  SlashCommandProps,
-  CommandOptions,
-} from 'commandkit';
+import type { CommandData, ChatInputCommandContext } from 'commandkit';
 import {
   MessageFlags,
   TextDisplayBuilder,
@@ -13,14 +9,14 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 
-export const data: CommandData = {
+export const command: CommandData = {
   name: 'sounds',
   description: 'Sends information about custom GTA5 sounds',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
 
-export function run({ interaction }: SlashCommandProps) {
+export function chatInput({ interaction }: ChatInputCommandContext) {
   const textComponent = new TextDisplayBuilder().setContent(
     '# 🔊 Lion Police Roleplay - Custom Sounds\n\n' +
       '### 📂 Návod na instalaci\n' +
@@ -65,8 +61,3 @@ export function run({ interaction }: SlashCommandProps) {
     components: [sectionComponent, actionRow],
   });
 }
-
-export const options: CommandOptions = {
-  devOnly: false,
-  deleted: false,
-};

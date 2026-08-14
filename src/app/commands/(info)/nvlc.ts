@@ -1,7 +1,7 @@
 import type {
   CommandData,
-  SlashCommandProps,
-  CommandOptions,
+  ChatInputCommandContext,
+  CommandMetadata,
 } from 'commandkit';
 import {
   MessageFlags,
@@ -10,14 +10,14 @@ import {
   SectionBuilder,
 } from 'discord.js';
 
-export const data: CommandData = {
+export const command: CommandData = {
   name: 'nvlcfix',
   description: 'Shows how to fix the Not a valid client connection error',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
 
-export async function run({ interaction }: SlashCommandProps) {
+export async function chatInput({ interaction }: ChatInputCommandContext) {
   const textComponent = new TextDisplayBuilder().setContent(
     '# 🔧 Lion Police Roleplay - Řešení chyby při připojení\n\n' +
       'Pokud se Vám při připojování na server zobrazí následující chyba:\n\n' +
@@ -49,9 +49,7 @@ export async function run({ interaction }: SlashCommandProps) {
   });
 }
 
-export const options: CommandOptions = {
-  devOnly: false,
+export const metadata: CommandMetadata = {
   userPermissions: ['Administrator', 'AddReactions'],
   botPermissions: ['Administrator', 'AddReactions'],
-  deleted: false,
 };

@@ -7,13 +7,9 @@ import {
   SeparatorBuilder,
   SeparatorSpacingSize,
 } from 'discord.js';
-import type {
-  CommandData,
-  SlashCommandProps,
-  CommandOptions,
-} from 'commandkit';
+import type { CommandData, ChatInputCommandContext } from 'commandkit';
 
-export const data: CommandData = {
+export const command: CommandData = {
   name: 'noclipinfo',
   description: 'Sends message to a user about their no-clip feature access',
   options: [
@@ -33,7 +29,7 @@ const ALLOWED_USER_IDS = [
   '432501487361327114',
 ];
 
-export async function run({ interaction }: SlashCommandProps) {
+export async function chatInput({ interaction }: ChatInputCommandContext) {
   if (!ALLOWED_USER_IDS.includes(interaction.user.id)) {
     return interaction.reply({
       content: '❌ You do not have permission to use this command.',
@@ -63,7 +59,7 @@ export async function run({ interaction }: SlashCommandProps) {
         'Zapnutí no-clipu si musíte nabindovat přes:\n' +
         '> Settings -> Keybindings -> FiveM -> (lion_utilities) Toggle no-clip // *Prázdný bind, něco tam dáte.*\n\n' +
         'V případě dotazů se neváhejte zeptat.\n\n' +
-        'Pro refresh dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n\n'+
+        'Pro refresh dejte **/refreshperms** na nějakém z Vašich civilian charakterů a vše by mělo začít fungovat. V případě problémů si založte ticket.\n\n' +
         'Hezký den,\n' +
         `<@${interaction.user.id}>`,
     );
@@ -97,10 +93,3 @@ export async function run({ interaction }: SlashCommandProps) {
     });
   }
 }
-
-export const options: CommandOptions = {
-  devOnly: false,
-  userPermissions: [],
-  botPermissions: [],
-  deleted: false,
-};
