@@ -91,8 +91,3 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     }
   });
 }
-
-export const metadata: CommandMetadata = {
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
-};
