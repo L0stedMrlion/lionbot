@@ -66,8 +66,3 @@ export function chatInput({ interaction }: ChatInputCommandContext) {
     components: [sectionComponent, actionRow],
   });
 }
-
-export const metadata: CommandMetadata = {
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
-};
