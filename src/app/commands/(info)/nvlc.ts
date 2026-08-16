@@ -48,8 +48,3 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     components: [sectionComponent],
   });
 }
-
-export const metadata: CommandMetadata = {
-  userPermissions: ['Administrator', 'AddReactions'],
-  botPermissions: ['Administrator', 'AddReactions'],
-};
