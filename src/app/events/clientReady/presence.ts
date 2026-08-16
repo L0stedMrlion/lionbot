@@ -118,7 +118,7 @@ function applyCurrentActivity(client: Client, state: PresenceState) {
 
   if (streamer) {
     setActivity(client, state, {
-      name: `🔴 ${streamer.name} on ${getPlatform(streamer.url)}`,
+      name: `${streamer.name} is live on ${getPlatform(streamer.url)}`,
       type: ActivityType.Streaming,
       url: streamer.url,
     });
