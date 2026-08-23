@@ -9,7 +9,10 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 
+const WELCOME_GUILD_ID = '1286329202723000431';
+
 const handler: EventHandler<'guildMemberAdd'> = async (member) => {
+  if (member.guild.id !== WELCOME_GUILD_ID) return;
   const inviteLink =
     'https://discord.com/channels/1286329202723000431/1420791609481756672';
 
