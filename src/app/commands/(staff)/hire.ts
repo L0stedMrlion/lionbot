@@ -9,6 +9,7 @@ import {
   ActionRowBuilder,
   EmbedBuilder,
 } from 'discord.js';
+import type { Client, GuildMember } from 'discord.js';
 import type { CommandData, ChatInputCommandContext } from 'commandkit';
 import { readSheet, updateSheet } from '../../../utils/googleSheets';
 
@@ -18,6 +19,63 @@ const MAIN_SHEET_NAME = '👮 Struktura LSPD';
 
 const REQUIRED_ROLE_ID = '1486821536957730967';
 const REQUIRED_GUILD_ID = '1286329202723000431';
+
+const LSPD_GUILD_ID = '1348336228411375729';
+const LSPD_ROLE_ID = '1350406101178519647';
+const LSPD_JOIN_WATCH_MS = 10 * 60 * 1000;
+
+function watchForLspdJoin(client: Client, userId: string, nickname: string) {
+  let finished = false;
+  let timeout: ReturnType<typeof setTimeout>;
+
+  const cleanup = () => {
+    client.off('guildMemberAdd', onGuildMemberAdd);
+    clearTimeout(timeout);
+  };
+
+  const applyMemberSetup = async (member: GuildMember) => {
+    if (finished) return;
+
+    finished = true;
+    cleanup();
+
+    try {
+      if (!member.roles.cache.has(LSPD_ROLE_ID)) {
+        await member.roles.add(LSPD_ROLE_ID);
+      }
+
+      if (member.nickname !== nickname) {
+        await member.setNickname(nickname);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to configure hired member ${userId} in LSPD guild:`,
+        error,
+      );
+    }
+  };
+
+  const onGuildMemberAdd = (member: GuildMember) => {
+    if (member.guild.id !== LSPD_GUILD_ID || member.id !== userId) return;
+    void applyMemberSetup(member);
+  };
+
+  client.on('guildMemberAdd', onGuildMemberAdd);
+
+  timeout = setTimeout(() => {
+    if (finished) return;
+    finished = true;
+    cleanup();
+  }, LSPD_JOIN_WATCH_MS);
+
+  const guild = client.guilds.cache.get(LSPD_GUILD_ID);
+  if (guild) {
+    void guild.members
+      .fetch(userId)
+      .then((member) => applyMemberSetup(member))
+      .catch(() => undefined);
+  }
+}
 
 export const command: CommandData = {
   name: 'hire',
@@ -197,6 +255,9 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
 
     const cleanICName = icName.trim().replace(/\s+/g, ' ');
     const cleanBadge = badgeFound.toString().trim();
+    const memberNickname = `[${formattedCallsign}] ${cleanICName} (${cleanBadge})`;
+
+    watchForLspdJoin(interaction.client, targetUser.id, memberNickname);
 
     const textComponent = new TextDisplayBuilder().setContent(
       `# 👮‍♂️ New Officer Hired!\n\n` +
@@ -205,7 +266,7 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
         `> 🆔 **Callsign:** \`${callsign || 'N/A'}\`\n` +
         `> 🎖️ **Badge Number:** \`${badgeFound}\`\n\n` +
         `### ⚡ Quick Copy\n` +
-        `\`\`\`\n[${formattedCallsign}] ${cleanICName} (${cleanBadge})\n\`\`\`\n`,
+        `\`\`\`\n${memberNickname}\n\`\`\`\n`,
     );
 
     const thumbnailComponent = new ThumbnailBuilder({
