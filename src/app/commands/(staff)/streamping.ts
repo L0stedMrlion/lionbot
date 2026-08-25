@@ -7,7 +7,7 @@ const TARGET_CHANNEL_ID = '1296897838692700304';
 const PING_ROLE_ID = '1296897948348715071';
 
 export const command: CommandData = {
-  name: 'twitchping',
+  name: 'streamping',
   description: 'Sends a ping about the start of a stream!',
   integration_types: [0, 1],
   contexts: [0, 1, 2],
