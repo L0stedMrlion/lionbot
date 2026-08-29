@@ -1,4 +1,5 @@
 import db from '../utils/db';
+import { initializeManagementPermissions } from '../services/managementPermissions';
 
 export async function checkDatabaseConnection() {
   try {
@@ -10,6 +11,16 @@ export async function checkDatabaseConnection() {
 
     await db.query('SELECT 1');
     console.log('✅ Connected to MySQL');
+
+    try {
+      await initializeManagementPermissions();
+      console.log('✅ Management permissions table ready');
+    } catch (managementError) {
+      console.error(
+        '❌ Failed to initialize management permissions table:',
+        managementError,
+      );
+    }
   } catch (err: any) {
     console.error('❌ MySQL Connection Failed:', err);
     console.error('');
