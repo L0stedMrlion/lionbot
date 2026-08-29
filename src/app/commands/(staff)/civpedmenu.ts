@@ -15,8 +15,8 @@ import {
   ensureManagementAccess,
   sendListEmbeds,
   truncateChoiceName,
+  hasManagementAccess,
 } from '../../../utils/managementCommands';
-import { hasManagementPermission } from '../../../services/managementPermissions';
 
 interface AllowedRow extends RowDataPacket {
   discord_id: string;
@@ -64,7 +64,7 @@ export const command: CommandData = {
 
 async function respondAutocomplete(interaction: AutocompleteInteraction) {
   try {
-    if (!(await hasManagementPermission(interaction.user.id))) {
+    if (!hasManagementAccess(interaction)) {
       await interaction.respond([]);
       return;
     }
