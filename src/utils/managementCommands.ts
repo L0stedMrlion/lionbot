@@ -8,6 +8,16 @@ const EMBED_COLOR = 12088115;
 const FOOTER_TEXT = '🦁 Lion Police Roleplay';
 const FOOTER_ICON =
   'https://mintcdn.com/lionpoliceroleplay/BtD-j6OxC9jgAPew/public/lionmain_logo.png?w=840&fit=max&auto=format&n=BtD-j6OxC9jgAPew&q=85&s=ec0ba702a756f34f3d581daff4b14430';
+const MANAGEMENT_LOG_GUILD_ID = '1286329202723000431';
+const MANAGEMENT_LOG_CHANNEL_ID = '1543530963466977420';
+
+interface ManagementLogData {
+  system: string;
+  action: 'LIST' | 'ADD' | 'REMOVE';
+  result?: string;
+  target?: string;
+  details?: string;
+}
 
 export function createManagementEmbed(title: string, description?: string) {
   const embed = new EmbedBuilder()
@@ -55,6 +65,54 @@ export async function ensureManagementAccess(
   }
 
   return false;
+}
+
+export async function sendManagementLog(
+  interaction: ChatInputCommandInteraction,
+  data: ManagementLogData,
+) {
+  try {
+    const guild = await interaction.client.guilds.fetch(MANAGEMENT_LOG_GUILD_ID);
+    const channel = await guild.channels.fetch(MANAGEMENT_LOG_CHANNEL_ID);
+
+    if (!channel || !channel.isTextBased() || !('send' in channel)) {
+      console.error('Management log channel is unavailable or not text-based.');
+      return;
+    }
+
+    const subcommand = interaction.options.getSubcommand(false);
+    const command = `/${interaction.commandName}${subcommand ? ` ${subcommand}` : ''}`;
+    const source = interaction.channelId
+      ? `<#${interaction.channelId}>\n\`${interaction.channelId}\``
+      : 'Unknown';
+
+    const embed = createManagementEmbed('Management Command Log')
+      .addFields(
+        { name: 'System', value: data.system, inline: true },
+        { name: 'Action', value: data.action, inline: true },
+        { name: 'Result', value: data.result ?? 'Success', inline: true },
+        {
+          name: 'Performed By',
+          value: `<@${interaction.user.id}>\n\`${interaction.user.id}\``,
+          inline: true,
+        },
+        { name: 'Command', value: `\`${command}\``, inline: true },
+        { name: 'Source Channel', value: source, inline: true },
+      )
+      .setTimestamp();
+
+    if (data.target) {
+      embed.addFields({ name: 'Target', value: data.target, inline: false });
+    }
+
+    if (data.details) {
+      embed.addFields({ name: 'Details', value: data.details, inline: false });
+    }
+
+    await (channel as any).send({ embeds: [embed] });
+  } catch (error) {
+    console.error('Failed to send management log:', error);
+  }
 }
 
 export function createListEmbeds(title: string, lines: string[]) {
