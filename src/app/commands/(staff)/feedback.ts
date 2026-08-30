@@ -17,6 +17,7 @@ import {
   sendListEmbeds,
   truncateChoiceName,
   hasManagementAccess,
+  sendManagementLog,
 } from '../../../utils/managementCommands';
 
 const PERMISSIONS: string[] = [
@@ -136,6 +137,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
       const lines = rows.map((row, index) => `${index + 1}. ${row.label}`);
       const embeds = createListEmbeds('Feedback Civilians', lines);
       await sendListEmbeds(interaction, embeds);
+      await sendManagementLog(interaction, {
+        system: 'Feedback Civilians',
+        action: 'LIST',
+        target: `${rows.length} active entries`,
+        details: 'Viewed the active feedback civilian list.',
+      });
       return;
     }
 
@@ -165,6 +172,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
             `**Value:** ${value}`,
           ),
         ],
+      });
+      await sendManagementLog(interaction, {
+        system: 'Feedback Civilians',
+        action: 'ADD',
+        target: `**${value}**`,
+        details: `Label: **${value}**\nValue: **${value}**\nStatus: Active`,
       });
       return;
     }
@@ -217,6 +230,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
           `**${entry.label}** has been removed from the feedback list.`,
         ),
       ],
+    });
+    await sendManagementLog(interaction, {
+      system: 'Feedback Civilians',
+      action: 'REMOVE',
+      target: `**${entry.label}**`,
+      details: `Value: **${entry.value}**\nStatus: Inactive`,
     });
   } catch (error) {
     console.error('Feedback management command failed:', error);
