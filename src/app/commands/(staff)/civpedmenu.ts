@@ -12,11 +12,16 @@ import type {
 import db from '../../../utils/db';
 import {
   createListEmbeds,
+  createManagementEmbed,
   ensureManagementAccess,
   sendListEmbeds,
   truncateChoiceName,
   hasManagementAccess,
 } from '../../../utils/managementCommands';
+
+const PERMISSIONS: string[] = [
+  '710549603216261141',
+];
 
 interface AllowedRow extends RowDataPacket {
   discord_id: string;
@@ -64,7 +69,7 @@ export const command: CommandData = {
 
 async function respondAutocomplete(interaction: AutocompleteInteraction) {
   try {
-    if (!hasManagementAccess(interaction)) {
+    if (!hasManagementAccess(interaction, PERMISSIONS)) {
       await interaction.respond([]);
       return;
     }
@@ -113,7 +118,7 @@ export const autocomplete: AutocompleteCommand = async ({ interaction }) => {
 };
 
 export async function chatInput({ interaction }: ChatInputCommandContext) {
-  if (!(await ensureManagementAccess(interaction))) return;
+  if (!(await ensureManagementAccess(interaction, PERMISSIONS))) return;
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -131,10 +136,7 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
       const lines = rows.map(
         (row) => `${row.name ?? row.discord_id} — \`${row.discord_id}\``,
       );
-      const embeds = createListEmbeds(
-        'Civilian PED Menu Permissions',
-        lines,
-      );
+      const embeds = createListEmbeds('Civilian PED Menu Permissions', lines);
       await sendListEmbeds(interaction, embeds);
       return;
     }
@@ -152,9 +154,14 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
         [user.id, name],
       );
 
-      await interaction.editReply(
-        `✅ Civilian PED Menu permission added.\n\n**User:** ${name}\n**Discord ID:** \`${user.id}\`\n\nRun **/refreshperms** in-game to apply the change.`,
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Civilian PED Menu Permission Added',
+            `**User:** ${name}\n**Discord ID:** \`${user.id}\`\n\nRun **/refreshperms** in-game to apply the change.`,
+          ),
+        ],
+      });
       return;
     }
 
@@ -169,9 +176,14 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
 
     const entry = rows[0];
     if (!entry) {
-      await interaction.editReply(
-        '❌ That Civilian PED Menu permission is not active or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Civilian PED Menu Permission Not Found',
+            'That Civilian PED Menu permission is not active or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
@@ -183,19 +195,34 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     );
 
     if (result.affectedRows === 0) {
-      await interaction.editReply(
-        '❌ That Civilian PED Menu permission is already inactive or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Civilian PED Menu Permission Not Found',
+            'That Civilian PED Menu permission is already inactive or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
-    await interaction.editReply(
-      `✅ Civilian PED Menu permission removed from **${entry.name ?? entry.discord_id}**.\n\nRun **/refreshperms** in-game to apply the change.`,
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'Civilian PED Menu Permission Removed',
+          `Civilian PED Menu permission removed from **${entry.name ?? entry.discord_id}**.\n\nRun **/refreshperms** in-game to apply the change.`,
+        ),
+      ],
+    });
   } catch (error) {
     console.error('Civilian PED Menu management command failed:', error);
-    await interaction.editReply(
-      '❌ Database error while processing the Civilian PED Menu command.',
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'Database Error',
+          'Database error while processing the Civilian PED Menu command.',
+        ),
+      ],
+    });
   }
 }
