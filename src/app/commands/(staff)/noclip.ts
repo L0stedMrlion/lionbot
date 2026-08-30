@@ -12,11 +12,16 @@ import type {
 import db from '../../../utils/db';
 import {
   createListEmbeds,
+  createManagementEmbed,
   ensureManagementAccess,
   sendListEmbeds,
   truncateChoiceName,
   hasManagementAccess,
 } from '../../../utils/managementCommands';
+
+const PERMISSIONS: string[] = [
+  '710549603216261141',
+];
 
 interface AllowedRow extends RowDataPacket {
   discord_id: string;
@@ -64,7 +69,7 @@ export const command: CommandData = {
 
 async function respondAutocomplete(interaction: AutocompleteInteraction) {
   try {
-    if (!hasManagementAccess(interaction)) {
+    if (!hasManagementAccess(interaction, PERMISSIONS)) {
       await interaction.respond([]);
       return;
     }
@@ -113,7 +118,7 @@ export const autocomplete: AutocompleteCommand = async ({ interaction }) => {
 };
 
 export async function chatInput({ interaction }: ChatInputCommandContext) {
-  if (!(await ensureManagementAccess(interaction))) return;
+  if (!(await ensureManagementAccess(interaction, PERMISSIONS))) return;
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -149,9 +154,14 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
         [user.id, name],
       );
 
-      await interaction.editReply(
-        `✅ No-Clip permission added.\n\n**User:** ${name}\n**Discord ID:** \`${user.id}\`\n\nRun **/refreshperms** in-game to apply the change.`,
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'No-Clip Permission Added',
+            `**User:** ${name}\n**Discord ID:** \`${user.id}\`\n\nRun **/refreshperms** in-game to apply the change.`,
+          ),
+        ],
+      });
       return;
     }
 
@@ -166,9 +176,14 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
 
     const entry = rows[0];
     if (!entry) {
-      await interaction.editReply(
-        '❌ That No-Clip permission is not active or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'No-Clip Permission Not Found',
+            'That No-Clip permission is not active or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
@@ -180,19 +195,34 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     );
 
     if (result.affectedRows === 0) {
-      await interaction.editReply(
-        '❌ That No-Clip permission is already inactive or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'No-Clip Permission Not Found',
+            'That No-Clip permission is already inactive or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
-    await interaction.editReply(
-      `✅ No-Clip permission removed from **${entry.name ?? entry.discord_id}**.\n\nRun **/refreshperms** in-game to apply the change.`,
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'No-Clip Permission Removed',
+          `No-Clip permission removed from **${entry.name ?? entry.discord_id}**.\n\nRun **/refreshperms** in-game to apply the change.`,
+        ),
+      ],
+    });
   } catch (error) {
     console.error('No-clip management command failed:', error);
-    await interaction.editReply(
-      '❌ Database error while processing the No-Clip command.',
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'Database Error',
+          'Database error while processing the No-Clip command.',
+        ),
+      ],
+    });
   }
 }
