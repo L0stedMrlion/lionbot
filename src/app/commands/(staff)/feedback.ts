@@ -21,7 +21,10 @@ import {
 } from '../../../utils/managementCommands';
 
 const PERMISSIONS: string[] = [
-  '710549603216261141',
+  '1286330077843558531',
+  "1404759432801292330",
+  "1186357212717785164",
+  "1287132936227000420"
 ];
 
 interface FeedbackRow extends RowDataPacket {
