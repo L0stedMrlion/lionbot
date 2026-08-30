@@ -12,11 +12,16 @@ import type {
 import db from '../../../utils/db';
 import {
   createListEmbeds,
+  createManagementEmbed,
   ensureManagementAccess,
   sendListEmbeds,
   truncateChoiceName,
   hasManagementAccess,
 } from '../../../utils/managementCommands';
+
+const PERMISSIONS: string[] = [
+  '710549603216261141',
+];
 
 interface FeedbackRow extends RowDataPacket {
   label: string;
@@ -38,14 +43,8 @@ export const command: CommandData = {
       type: ApplicationCommandOptionType.Subcommand,
       options: [
         {
-          name: 'label',
-          description: 'Display label shown in the feedback list',
-          type: ApplicationCommandOptionType.String,
-          required: true,
-        },
-        {
           name: 'value',
-          description: 'Internal civilian value used by FiveM',
+          description: 'Civilian name',
           type: ApplicationCommandOptionType.String,
           required: true,
         },
@@ -70,7 +69,7 @@ export const command: CommandData = {
 
 async function respondAutocomplete(interaction: AutocompleteInteraction) {
   try {
-    if (!hasManagementAccess(interaction)) {
+    if (!hasManagementAccess(interaction, PERMISSIONS)) {
       await interaction.respond([]);
       return;
     }
@@ -119,7 +118,7 @@ export const autocomplete: AutocompleteCommand = async ({ interaction }) => {
 };
 
 export async function chatInput({ interaction }: ChatInputCommandContext) {
-  if (!(await ensureManagementAccess(interaction))) return;
+  if (!(await ensureManagementAccess(interaction, PERMISSIONS))) return;
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -141,11 +140,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     }
 
     if (subcommand === 'add') {
-      const label = interaction.options.getString('label', true).trim();
       const value = interaction.options.getString('value', true).trim();
 
-      if (!label || !value) {
-        await interaction.editReply('❌ Label and value cannot be empty.');
+      if (!value) {
+        await interaction.editReply({
+          embeds: [createManagementEmbed('Invalid Value', 'Value cannot be empty.')],
+        });
         return;
       }
 
@@ -155,12 +155,17 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
          ON DUPLICATE KEY UPDATE
            label = VALUES(label),
            active = 1`,
-        [label, value],
+        [value, value],
       );
 
-      await interaction.editReply(
-        `✅ Feedback civilian added successfully.\n\n**Label:** ${label}\n**Value:** ${value}`,
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Feedback Civilian Added',
+            `**Value:** ${value}`,
+          ),
+        ],
+      });
       return;
     }
 
@@ -175,9 +180,14 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
 
     const entry = rows[0];
     if (!entry) {
-      await interaction.editReply(
-        '❌ That feedback civilian is not active or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Feedback Civilian Not Found',
+            'That feedback civilian is not active or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
@@ -189,19 +199,34 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
     );
 
     if (result.affectedRows === 0) {
-      await interaction.editReply(
-        '❌ That feedback civilian is already inactive or no longer exists.',
-      );
+      await interaction.editReply({
+        embeds: [
+          createManagementEmbed(
+            'Feedback Civilian Not Found',
+            'That feedback civilian is already inactive or no longer exists.',
+          ),
+        ],
+      });
       return;
     }
 
-    await interaction.editReply(
-      `✅ **${entry.label}** has been removed from the feedback list.`,
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'Feedback Civilian Removed',
+          `**${entry.label}** has been removed from the feedback list.`,
+        ),
+      ],
+    });
   } catch (error) {
     console.error('Feedback management command failed:', error);
-    await interaction.editReply(
-      '❌ Database error while processing the feedback command.',
-    );
+    await interaction.editReply({
+      embeds: [
+        createManagementEmbed(
+          'Database Error',
+          'Database error while processing the feedback command.',
+        ),
+      ],
+    });
   }
 }
