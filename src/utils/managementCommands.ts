@@ -3,38 +3,53 @@ import type {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import {
-  MANAGEMENT_ALLOWED_ROLE_IDS,
-  MANAGEMENT_ALLOWED_USER_IDS,
-} from '../config/management';
+
+const EMBED_COLOR = 12088115;
+const FOOTER_TEXT = '🦁 Lion Police Roleplay';
+const FOOTER_ICON =
+  'https://mintcdn.com/lionpoliceroleplay/BtD-j6OxC9jgAPew/public/lionmain_logo.png?w=840&fit=max&auto=format&n=BtD-j6OxC9jgAPew&q=85&s=ec0ba702a756f34f3d581daff4b14430';
+
+export function createManagementEmbed(title: string, description?: string) {
+  const embed = new EmbedBuilder()
+    .setColor(EMBED_COLOR)
+    .setTitle(title)
+    .setFooter({ text: FOOTER_TEXT, iconURL: FOOTER_ICON });
+
+  if (description) embed.setDescription(description);
+
+  return embed;
+}
 
 export function hasManagementAccess(
   interaction: ChatInputCommandInteraction | AutocompleteInteraction,
+  permissions: string[],
 ) {
-  if (MANAGEMENT_ALLOWED_USER_IDS.includes(interaction.user.id)) {
-    return true;
-  }
+  if (permissions.includes(interaction.user.id)) return true;
 
   const member = interaction.member;
-  if (!interaction.inGuild() || !member || !('roles' in member)) {
-    return false;
-  }
+  if (!interaction.inGuild() || !member || !('roles' in member)) return false;
 
   const roles = (member as any).roles;
 
-  return MANAGEMENT_ALLOWED_ROLE_IDS.some((roleId) =>
-    Array.isArray(roles) ? roles.includes(roleId) : roles?.cache?.has(roleId),
+  return permissions.some((id) =>
+    Array.isArray(roles) ? roles.includes(id) : roles?.cache?.has(id),
   );
 }
 
 export async function ensureManagementAccess(
   interaction: ChatInputCommandInteraction,
+  permissions: string[],
 ) {
-  if (hasManagementAccess(interaction)) return true;
+  if (hasManagementAccess(interaction, permissions)) return true;
 
   if (!interaction.replied && !interaction.deferred) {
     await interaction.reply({
-      content: '❌ You do not have permission to use this command.',
+      embeds: [
+        createManagementEmbed(
+          'Permission Denied',
+          'You do not have permission to use this command.',
+        ),
+      ],
       flags: MessageFlags.Ephemeral,
     });
   }
@@ -42,11 +57,7 @@ export async function ensureManagementAccess(
   return false;
 }
 
-export function createListEmbeds(
-  title: string,
-  lines: string[],
-  totalLabel = 'Total',
-) {
+export function createListEmbeds(title: string, lines: string[]) {
   const chunks: string[] = [];
   let current = '';
 
@@ -65,12 +76,13 @@ export function createListEmbeds(
   if (chunks.length === 0) chunks.push('No active entries.');
 
   return chunks.map((description, index) => {
-    const embed = new EmbedBuilder()
-      .setTitle(chunks.length > 1 ? `${title} (${index + 1}/${chunks.length})` : title)
-      .setDescription(description);
+    const embed = createManagementEmbed(
+      chunks.length > 1 ? `${title} (${index + 1}/${chunks.length})` : title,
+      description,
+    );
 
     if (index === chunks.length - 1) {
-      embed.setFooter({ text: `${totalLabel}: ${lines.length}` });
+      embed.addFields({ name: 'Total', value: String(lines.length), inline: true });
     }
 
     return embed;
