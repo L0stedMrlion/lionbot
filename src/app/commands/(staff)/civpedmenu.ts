@@ -21,7 +21,9 @@ import {
 } from '../../../utils/managementCommands';
 
 const PERMISSIONS: string[] = [
-  '710549603216261141',
+  '1286330077843558531',
+  "1404759432801292330",
+  "1492665952959987902,
 ];
 
 interface AllowedRow extends RowDataPacket {
