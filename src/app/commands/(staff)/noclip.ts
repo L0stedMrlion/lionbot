@@ -17,6 +17,7 @@ import {
   sendListEmbeds,
   truncateChoiceName,
   hasManagementAccess,
+  sendManagementLog,
 } from '../../../utils/managementCommands';
 
 const PERMISSIONS: string[] = [
@@ -138,6 +139,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
       );
       const embeds = createListEmbeds('No-Clip Permissions', lines);
       await sendListEmbeds(interaction, embeds);
+      await sendManagementLog(interaction, {
+        system: 'No-Clip Permissions',
+        action: 'LIST',
+        target: `${rows.length} active entries`,
+        details: 'Viewed the active No-Clip permission list.',
+      });
       return;
     }
 
@@ -161,6 +168,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
             `**User:** ${name}\n**Discord ID:** \`${user.id}\`\n\nRun **/refreshperms** in-game to apply the change.`,
           ),
         ],
+      });
+      await sendManagementLog(interaction, {
+        system: 'No-Clip Permissions',
+        action: 'ADD',
+        target: `<@${user.id}>`,
+        details: `Name: **${name}**\nDiscord ID: \`${user.id}\`\nStatus: Active\nFiveM cache: Requires **/refreshperms**`,
       });
       return;
     }
@@ -213,6 +226,12 @@ export async function chatInput({ interaction }: ChatInputCommandContext) {
           `No-Clip permission removed from **${entry.name ?? entry.discord_id}**.\n\nRun **/refreshperms** in-game to apply the change.`,
         ),
       ],
+    });
+    await sendManagementLog(interaction, {
+      system: 'No-Clip Permissions',
+      action: 'REMOVE',
+      target: `<@${entry.discord_id}>`,
+      details: `Name: **${entry.name ?? entry.discord_id}**\nDiscord ID: \`${entry.discord_id}\`\nStatus: Inactive\nFiveM cache: Requires **/refreshperms**`,
     });
   } catch (error) {
     console.error('No-clip management command failed:', error);
