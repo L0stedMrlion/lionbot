@@ -18,6 +18,8 @@ interface LiveStats extends RowDataPacket {
 }
 
 const INTERVAL_MS = 5 * 60 * 1000;
+const STREAMING_GUILD_ID = '1286329202723000431';
+const STREAMING_ROLE_ID = '1544701880733663353';
 
 type Status = { name: string; type: ActivityType };
 
@@ -130,6 +132,33 @@ function applyCurrentActivity(client: Client, state: PresenceState) {
   setActivity(client, state, status);
 }
 
+async function syncStreamerRole(member: GuildMember, presence: Presence | null) {
+  if (member.guild.id !== STREAMING_GUILD_ID) return;
+
+  const isStreaming = presence?.activities.some(
+    (activity) => activity.type === ActivityType.Streaming,
+  ) ?? false;
+
+  const hasStreamingRole = member.roles.cache.has(STREAMING_ROLE_ID);
+  const hasStreamerRole = member.roles.cache.has(STREAMER_ROLE_ID);
+
+  try {
+    if (isStreaming && hasStreamingRole && !hasStreamerRole) {
+      await member.roles.add(
+        STREAMER_ROLE_ID,
+        'Automatically assigned while streaming',
+      );
+    } else if ((!isStreaming || !hasStreamingRole) && hasStreamerRole) {
+      await member.roles.remove(
+        STREAMER_ROLE_ID,
+        'Automatically removed when no longer streaming or streaming role is missing',
+      );
+    }
+  } catch (error) {
+    console.error(`Failed to sync streamer role for ${member.user.tag}:`, error);
+  }
+}
+
 function updateStreamer(member: GuildMember, presence: Presence | null) {
   if (!member.roles.cache.has(STREAMER_ROLE_ID)) return null;
 
@@ -153,6 +182,8 @@ function syncStreamer(
   member: GuildMember,
   presence: Presence | null,
 ) {
+  void syncStreamerRole(member, presence);
+
   const streamer = updateStreamer(member, presence);
   const currentStreamer = state.liveStreamers.get(member.id);
 
@@ -173,6 +204,8 @@ function syncStreamer(
 function loadCachedStreamers(client: Client, state: PresenceState) {
   for (const guild of client.guilds.cache.values()) {
     for (const member of guild.members.cache.values()) {
+      void syncStreamerRole(member, member.presence);
+
       const streamer = updateStreamer(member, member.presence);
       if (streamer) state.liveStreamers.set(member.id, streamer);
     }
