@@ -17,7 +17,7 @@ interface LiveStats extends RowDataPacket {
   fire: number;
 }
 
-const INTERVAL_MS = 1 * 60 * 1000;
+const INTERVAL_MS = 5 * 60 * 1000;
 const STREAMING_GUILD_ID = '1286329202723000431';
 const STREAMER_LIVE_ROLE_ID = '1544701880733663353';
 
