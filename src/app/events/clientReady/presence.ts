@@ -19,7 +19,7 @@ interface LiveStats extends RowDataPacket {
 
 const INTERVAL_MS = 5 * 60 * 1000;
 const STREAMING_GUILD_ID = '1286329202723000431';
-const STREAMING_ROLE_ID = '1544701880733663353';
+
 
 type Status = { name: string; type: ActivityType };
 
@@ -139,19 +139,18 @@ async function syncStreamerRole(member: GuildMember, presence: Presence | null) 
     (activity) => activity.type === ActivityType.Streaming,
   ) ?? false;
 
-  const hasStreamingRole = member.roles.cache.has(STREAMING_ROLE_ID);
   const hasStreamerRole = member.roles.cache.has(STREAMER_ROLE_ID);
 
   try {
-    if (isStreaming && hasStreamingRole && !hasStreamerRole) {
+    if (isStreaming && !hasStreamerRole) {
       await member.roles.add(
         STREAMER_ROLE_ID,
         'Automatically assigned while streaming',
       );
-    } else if ((!isStreaming || !hasStreamingRole) && hasStreamerRole) {
+    } else if (!isStreaming && hasStreamerRole) {
       await member.roles.remove(
         STREAMER_ROLE_ID,
-        'Automatically removed when no longer streaming or streaming role is missing',
+        'Automatically removed when no longer streaming',
       );
     }
   } catch (error) {
