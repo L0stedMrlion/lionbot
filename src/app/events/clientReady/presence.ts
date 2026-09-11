@@ -17,8 +17,9 @@ interface LiveStats extends RowDataPacket {
   fire: number;
 }
 
-const INTERVAL_MS = 5 * 60 * 1000;
+const INTERVAL_MS = 1 * 60 * 1000;
 const STREAMING_GUILD_ID = '1286329202723000431';
+const STREAMER_LIVE_ROLE_ID = '1544701880733663353';
 
 
 type Status = { name: string; type: ActivityType };
@@ -135,26 +136,26 @@ function applyCurrentActivity(client: Client, state: PresenceState) {
 async function syncStreamerRole(member: GuildMember, presence: Presence | null) {
   if (member.guild.id !== STREAMING_GUILD_ID) return;
 
+  const hasStreamerRole = member.roles.cache.has(STREAMER_ROLE_ID);
+  const hasLiveRole = member.roles.cache.has(STREAMER_LIVE_ROLE_ID);
   const isStreaming = presence?.activities.some(
     (activity) => activity.type === ActivityType.Streaming,
   ) ?? false;
 
-  const hasStreamerRole = member.roles.cache.has(STREAMER_ROLE_ID);
-
   try {
-    if (isStreaming && !hasStreamerRole) {
+    if (hasStreamerRole && isStreaming && !hasLiveRole) {
       await member.roles.add(
-        STREAMER_ROLE_ID,
+        STREAMER_LIVE_ROLE_ID,
         'Automatically assigned while streaming',
       );
-    } else if (!isStreaming && hasStreamerRole) {
+    } else if ((!hasStreamerRole || !isStreaming) && hasLiveRole) {
       await member.roles.remove(
-        STREAMER_ROLE_ID,
-        'Automatically removed when no longer streaming',
+        STREAMER_LIVE_ROLE_ID,
+        'Automatically removed when no longer streaming or no longer a streamer',
       );
     }
   } catch (error) {
-    console.error(`Failed to sync streamer role for ${member.user.tag}:`, error);
+    console.error(`Failed to sync streamer live role for ${member.user.tag}:`, error);
   }
 }
 
