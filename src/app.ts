@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 import { Client, IntentsBitField, Partials } from 'discord.js';
 import { initializeServerStats } from './services/serverStats';
