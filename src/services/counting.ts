@@ -323,6 +323,19 @@ async function handleDelete(client: Client, message: Message | PartialMessage) {
     0xfee75c);
 }
 
+async function handleEdit(client: Client, before: Message | PartialMessage, after: Message | PartialMessage) {
+  if (!initialized || !state || state.phase !== 'active' ||
+      after.channelId !== COUNTING_CHANNEL_ID ||
+      after.id !== state.last_message_id || state.last_deleted ||
+      !after.editedTimestamp || before.content === after.content) return;
+  const userId = state.last_user_id;
+  const value = formatValue(state.mode, state.current_value);
+  await persist({ ...state, last_deleted: 1 });
+  if (userId) await send(client, '⚠️ Last number edited',
+    `<@${userId}> edited the last accepted number (**${value}**). Counting continues.`,
+    0xfee75c);
+}
+
 async function setup(client: Client) {
   await db.query(
     `CREATE TABLE IF NOT EXISTS lion_counting_state (
@@ -376,6 +389,7 @@ async function setup(client: Client) {
 export function initializeCounting(client: Client) {
   client.on(Events.MessageCreate, (message) => queue(() => handleMessage(client, message)));
   client.on(Events.MessageDelete, (message) => queue(() => handleDelete(client, message)));
+  client.on(Events.MessageUpdate, (before, after) => queue(() => handleEdit(client, before, after)));
   client.on(Events.MessageBulkDelete, (messages) => {
     for (const message of messages.values()) queue(() => handleDelete(client, message));
   });
