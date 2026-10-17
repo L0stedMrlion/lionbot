@@ -235,7 +235,7 @@ async function announceRound(client: Client, current: CountingState) {
   const goal = current.mode === 'countdown'
     ? `Start at **${current.target}** and reach **0**.`
     : `Reach or pass **${current.target}**.`;
-  const content = `**Mode:** ${mode.name}\n**Target:** ${current.target}\n**Rule:** ${mode.description}\n${goal}\n\n**Three counting examples**\n${examples(current)}\n\nTake turns sending the next number. You may use +, -, *, or : (division). A wrong number starts a new mode.`;
+  const content = `**Mode:** ${mode.name}\n**Target:** ${current.target}\n**Rule:** ${mode.description}\n${goal}\n\n**Three counting examples**\n${examples(current)}\n\nTake turns sending the next number. A wrong number starts a new mode.`;
   await send(client, '🎯 New Counting Mode', content, 0x5865f2);
 }
 
