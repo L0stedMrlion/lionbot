@@ -14,7 +14,6 @@ export const COUNTING_MODES = {
   prime: {
     name: 'Prime Numbers',
     maxCount: 100,
-    variation: 10,
     description: 'Count using prime numbers only.',
   },
   roman: {
