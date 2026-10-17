@@ -50,11 +50,17 @@ function chooseMode(previous?: CountingMode): CountingMode {
 
 function createState(previous?: CountingState): CountingState {
   const mode = chooseMode(previous?.mode);
+  const base = COUNTING_MODES[mode].maxCount;
+  const min = Math.max(1, base - COUNTING_VARIATION);
+  const max = base + COUNTING_VARIATION;
+  const options = Array.from({ length: max - min + 1 }, (_, index) => min + index)
+    .filter((value) => mode !== 'prime' || isPrime(value));
+  if (!options.length) throw new Error('No prime targets in the configured range');
+  const target = options[Math.floor(Math.random() * options.length)];
   return {
     channel_id: COUNTING_CHANNEL_ID,
     mode,
-    target: Math.max(1, COUNTING_MODES[mode].maxCount +
-      Math.floor(Math.random() * (COUNTING_VARIATION * 2 + 1)) - COUNTING_VARIATION),
+    target,
     current_value: 0,
     progress: 0,
     last_user_id: null,
@@ -70,6 +76,66 @@ function isPrime(value: number) {
     if (value % i === 0) return false;
   }
   return true;
+}
+
+function parseCountingExpression(text: string): number | null {
+  if (!text || text.length > 120) return null;
+  let index = 0;
+  const skipSpaces = () => {
+    while (index < text.length && /\s/.test(text[index])) index++;
+  };
+  const factor = (): number | null => {
+    skipSpaces();
+    if (text[index] === '+' || text[index] === '-') {
+      const sign = text[index++];
+      const value = factor();
+      return value === null ? null : sign === '-' ? -value : value;
+    }
+    if (text[index] === '(') {
+      index++;
+      const value = sum();
+      skipSpaces();
+      if (text[index] !== ')') return null;
+      index++;
+      return value;
+    }
+    const start = index;
+    while (index < text.length && text[index] >= '0' && text[index] <= '9') index++;
+    if (index === start) return null;
+    const value = Number(text.slice(start, index));
+    return Number.isSafeInteger(value) ? value : null;
+  };
+  const product = (): number | null => {
+    let result = factor();
+    if (result === null) return null;
+    while (true) {
+      skipSpaces();
+      const operation = text[index];
+      if (operation !== '*' && operation !== ':' && operation !== '/') return result;
+      index++;
+      const value = factor();
+      if (value === null || ((operation === ':' || operation === '/') && value === 0)) return null;
+      result = operation === '*' ? result * value : result / value;
+      if (!Number.isFinite(result)) return null;
+    }
+  };
+  const sum = (): number | null => {
+    let result = product();
+    if (result === null) return null;
+    while (true) {
+      skipSpaces();
+      const operation = text[index];
+      if (operation !== '+' && operation !== '-') return result;
+      index++;
+      const value = product();
+      if (value === null) return null;
+      result = operation === '+' ? result + value : result - value;
+      if (!Number.isFinite(result)) return null;
+    }
+  };
+  const value = sum();
+  skipSpaces();
+  return index === text.length && value !== null && Number.isSafeInteger(value) ? value : null;
 }
 
 function nthPrime(index: number) {
@@ -169,7 +235,7 @@ async function announceRound(client: Client, current: CountingState) {
   const goal = current.mode === 'countdown'
     ? `Start at **${current.target}** and reach **0**.`
     : `Reach or pass **${current.target}**.`;
-  const content = `**Mode:** ${mode.name}\n**Target:** ${current.target}\n**Rule:** ${mode.description}\n${goal}\n\n**Three counting examples**\n${examples(current)}\n\nTake turns sending the next number. A wrong number starts a new mode.`;
+  const content = `**Mode:** ${mode.name}\n**Target:** ${current.target}\n**Rule:** ${mode.description}\n${goal}\n\n**Three counting examples**\n${examples(current)}\n\nTake turns sending the next number. You may use +, -, *, or : (division). A wrong number starts a new mode.`;
   await send(client, '🎯 New Counting Mode', content, 0x5865f2);
 }
 
@@ -185,7 +251,7 @@ async function failRound(client: Client, userId: string, value: string) {
   const current = state;
   await persist({ ...current, phase: 'complete' });
   await send(client, '❌ Counting failed',
-    `<@${userId}> entered **${value}** instead of **${formatValue(current.mode, expectedValue(current))}**.`,
+    `<@${userId}> entered \`${value}\` instead of **${formatValue(current.mode, expectedValue(current))}**.`,
     0xed4245).catch((error) => console.error('[Counting] Failure notification:', error));
   await startNextRound(client);
 }
@@ -207,18 +273,21 @@ async function handleMessage(client: Client, message: Message) {
   }
   const value = message.content.trim();
   const roman = state.mode === 'roman';
-  const recognized = roman ? /^[IVXLCDM]+$/i.test(value) : /^\d+$/.test(value);
-  if (!recognized || message.attachments.size || message.stickers.size || message.embeds.length) {
+  const romanInput = roman && /^[IVXLCDM]+$/i.test(value);
+  const mathInput = /[+*:\/()-]/.test(value);
+  const numeric = !roman || mathInput ? parseCountingExpression(value) : null;
+  if ((!romanInput && numeric === null) || message.attachments.size ||
+      message.stickers.size || message.embeds.length) {
     await message.delete().catch(() => undefined);
     return;
   }
-  const submitted = roman ? value.toUpperCase() : value;
-  const correct = roman
+  const submitted = romanInput ? value.toUpperCase() : value;
+  const correct = romanInput
     ? submitted === toRoman(expectedValue(state))
-    : Number.isSafeInteger(Number(submitted)) && Number(submitted) === expectedValue(state);
+    : numeric === expectedValue(state);
   if (!correct) {
     await message.react('❌').catch(() => undefined);
-    await failRound(client, message.author.id, submitted);
+    await failRound(client, message.author.id, numeric !== null && mathInput ? `${submitted} = ${numeric}` : submitted);
     return;
   }
   const nextNumber = expectedValue(state);
@@ -236,7 +305,7 @@ async function handleMessage(client: Client, message: Message) {
   await message.react('✅').catch(() => undefined);
   if (won) {
     await send(client, '🏆 Target reached',
-      `<@${message.author.id}> completed **${COUNTING_MODES[next.mode].name}** with **${submitted}**!`,
+      `<@${message.author.id}> completed **${COUNTING_MODES[next.mode].name}** with **${formatValue(next.mode, nextNumber)}**!`,
       0x57f287).catch((error) => console.error('[Counting] Win notification:', error));
     await startNextRound(client);
   }
