@@ -22,6 +22,5 @@ if (process.env.TOKEN) {
 checkDatabaseConnection();
 initializeServerStats(client);
 initializeCounting(client);
-initializeMediaPing(client);
 
 export default client;
