@@ -78,7 +78,7 @@ async function updateServerStats(client: Client) {
     if (statsCategory && 'setName' in statsCategory) {
       const timestamp = getPragueTime();
       await statsCategory.setName(
-        `📊┃Server Live Stats (LAST UPD: ${timestamp})`,
+        `📊┃Server Live Stats (UPDATE: ${timestamp})`,
       );
       console.log(`✅ Updated stats category timestamp: ${timestamp}`);
     } else {
