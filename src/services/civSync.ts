@@ -31,19 +31,19 @@ const pending = new Map<string, Promise<SyncResult>>();
 const roleChangeTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const noCivRoleSince = new Map<string, number>();
 
-function configuredDelay(name: string, defaultSeconds: number, minimumSeconds: number, maximumSeconds: number): number {
+function configuredDelay(name: string, defaultSeconds: number): number {
   const raw = process.env[name];
   if (!raw) return defaultSeconds * 1000;
   const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < minimumSeconds || parsed > maximumSeconds) {
-    console.warn(`[civSync] Invalid ${name}; using ${defaultSeconds} seconds`);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 15) {
+    console.warn(`[civSync] ${name} must be between 1 and 15 seconds; using ${defaultSeconds} seconds`);
     return defaultSeconds * 1000;
   }
   return parsed * 1000;
 }
 
-const rankChangeDelayMs = configuredDelay('CIVSYNC_ROLE_SETTLE_SECONDS', 12, 5, 120);
-const roleRemovalGraceMs = configuredDelay('CIVSYNC_REMOVAL_GRACE_SECONDS', 60, 30, 600);
+const rankChangeDelayMs = configuredDelay('CIVSYNC_ROLE_SETTLE_SECONDS', 2);
+const roleRemovalGraceMs = configuredDelay('CIVSYNC_REMOVAL_GRACE_SECONDS', 10);
 
 function deferredSync(group: string): SyncResult {
   return { status: 'deferred', group, changed: false, affected: 0, skipped: 0, linked: 0, pending: true };
@@ -64,12 +64,14 @@ function scheduleRoleSyncTimer(member: GuildMember, delayMs: number) {
 
 export function scheduleCivRoleSync(member: GuildMember) {
   const group = resolveCivGroup(member.roles.cache).group;
+  const delayMs = group === 'user' ? roleRemovalGraceMs : rankChangeDelayMs;
   if (group === 'user') {
-    noCivRoleSince.set(member.id, Date.now());
+    if (!noCivRoleSince.has(member.id)) noCivRoleSince.set(member.id, Date.now());
   } else {
     noCivRoleSince.delete(member.id);
   }
-  scheduleRoleSyncTimer(member, group === 'user' ? roleRemovalGraceMs : rankChangeDelayMs);
+  scheduleRoleSyncTimer(member, delayMs);
+  console.info(`[civSync] CIV role change for ${member.id}: detected=${group}, checking latest roles in ${delayMs / 1000}s`);
 }
 
 export function cancelCivRoleSync(discordId: string) {
@@ -183,6 +185,12 @@ function serializeSync(discordId: string, task: () => Promise<SyncResult>) {
 
 async function performSync(discordId: string, target: SyncTarget, user?: User, sendDm = true) {
   const result = await requestSync(discordId, target);
+  console.info(`[civSync] Sync ${discordId}: group=${target.group}, linked=${result.linked}, affected=${result.affected}, skipped=${result.skipped}, pending=${result.pending}`);
+  if (result.linked === 0) {
+    console.warn(`[civSync] No FiveM license linked to Discord ${discordId}. The player must connect to the FiveM server with Discord enabled before offline sync can work.`);
+  } else if (result.affected === 0 && result.skipped > 0) {
+    console.info(`[civSync] No character changed for ${discordId}: existing user or other non-CIV groups are protected.`);
+  }
   if (sendDm && user) await notifyUser(user, target, result);
   return result;
 }
@@ -194,6 +202,7 @@ export function syncMember(member: GuildMember, sendDm = true) {
       const actual = await member.guild.members.fetch({ user: member.id, force: true });
       if (roleChangeTimers.has(member.id)) return deferredSync('pending');
       const target = resolveCivGroup(actual.roles.cache);
+      console.info(`[civSync] Fetched Discord roles for ${member.id}: target=${target.group}`);
 
       if (target.group === 'user') {
         const now = Date.now();
@@ -202,6 +211,7 @@ export function syncMember(member: GuildMember, sendDm = true) {
         const remainingMs = absentSince + roleRemovalGraceMs - now;
         if (remainingMs > 0) {
           scheduleRoleSyncTimer(actual, remainingMs);
+          console.info(`[civSync] ${member.id} has no CIV role; final check in ${Math.ceil(remainingMs / 1000)}s before any demotion`);
           return deferredSync('user');
         }
       } else {
