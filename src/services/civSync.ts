@@ -70,13 +70,10 @@ async function notifyUser(user: User, target: SyncTarget, result: SyncResult) {
   if (result.pending) {
     details.push('⏳ **Čeká na propojení účtu**\nZměny se uplatní po propojení FiveM účtu s Discordem při připojení na server.');
   }
-  if (result.skipped > 0) {
-    details.push(`🔒 **Chráněné postavy**\nU ${result.skipped} postav nebyla skupina změněna, protože mají chráněné oprávnění mimo CIV systém.`);
-  }
 
   const section = new SectionBuilder()
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('## 🛡️ LION POLICE ROLEPLAY\n### Civilian Permissions'),
+      new TextDisplayBuilder().setContent('## 🌀 LION POLICE ROLEPLAY\n## Civilian Permissions'),
       new TextDisplayBuilder().setContent(`### ${heading}\n\n${message}`),
     )
     .setThumbnailAccessory(
@@ -89,7 +86,7 @@ async function notifyUser(user: User, target: SyncTarget, result: SyncResult) {
     section,
     new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
     ...(details.length ? [new TextDisplayBuilder().setContent(details.join('\n\n')), new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)] : []),
-    new TextDisplayBuilder().setContent('ℹ️ **Automatické oznámení** • Lion Police Roleplay\nOprávnění jsou spravována podle tvých Discord rolí.'),
+    new TextDisplayBuilder().setContent('ℹ️ **Automatické oznámení** Tato zpráva byla vygenerována automaticky pouze pro Vaši informaci.'),
   ];
 
   try {
