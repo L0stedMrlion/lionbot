@@ -23,7 +23,7 @@ export const civSyncGuildId = process.env.CIVSYNC_GUILD_ID || '12863292027230004
 function resolveCivGroup(roleIds: { has(roleId: string): boolean }): SyncTarget {
   const matched = claimCivRoleGroups.find(({ roleId }) => roleIds.has(roleId));
   const group = matched?.group ?? 'user';
-  const labels: Record<string, string> = { user: 'User', civ: 'Civilian', civ_exp: 'Experienced Civilian', civ_beg: 'Beginner Civilian' };
+  const labels: Record<string, string> = { user: 'User', civ_exp: 'Civilian Experienced', civ: 'Verified Civilian', civ_beg: 'Civilian Begginer' };
   return { group, label: labels[group] ?? group };
 }
 
@@ -47,7 +47,30 @@ function authorization() {
   return { 'X-Lion-Civsync-Key': key };
 }
 
+let serverSafetyValidUntil = 0;
+let serverSafetyCheck: Promise<void> | null = null;
+
+async function verifyServerSafety() {
+  if (Date.now() < serverSafetyValidUntil) return;
+  if (!serverSafetyCheck) {
+    serverSafetyCheck = (async () => {
+      const response = await axios.get<{ syncPolicy?: string }>(apiUrl('/linked'), {
+        headers: authorization(),
+        timeout: 15000,
+      });
+      if (response.data?.syncPolicy !== 'civ-characters-only-v1') {
+        throw new Error('Unsafe or outdated lion_civsync server resource. Deploy the CIV-only sync resource before enabling automatic synchronization.');
+      }
+      serverSafetyValidUntil = Date.now() + 30000;
+    })().finally(() => {
+      serverSafetyCheck = null;
+    });
+  }
+  await serverSafetyCheck;
+}
+
 async function requestSync(discordId: string, target: SyncTarget): Promise<SyncResult> {
+  await verifyServerSafety();
   const response = await axios.post<SyncResult>(
     apiUrl('/sync'),
     { discordId, group: target.group },
@@ -64,7 +87,7 @@ async function notifyUser(user: User, target: SyncTarget, result: SyncResult) {
   const heading = revoked ? '❌ Civilian oprávnění odebrána' : '✅ Civilian oprávnění aktualizována';
   const message = revoked
     ? 'Tvoje oprávnění v systému Civilian byla odebrána. Příslušné postavy byly převedeny zpět do základní skupiny \u0060user\u0060.'
-    : `Tvoje aktuální skupina je **${target.label}** (\u0060${target.group}\u0060). Oprávnění se automaticky synchronizují na všechny tvoje příslušné postavy.`;
+    : `Tvoje aktuální skupina je **${target.label}** (\u0060${target.group}\u0060). Aktualizovány byly pouze postavy, které už měly CIV skupinu. Postavy se skupinou user nebo jinou ne-CIV skupinou zůstaly beze změny.`;
 
   const details: string[] = [];
   if (result.pending) {
@@ -147,10 +170,11 @@ async function checkLinked(client: Client) {
   running = true;
   try {
     const guild = await client.guilds.fetch(civSyncGuildId);
-    const response = await axios.get<{ linked: string[] }>(apiUrl('/linked'), {
+    const response = await axios.get<{ linked: string[]; syncPolicy?: string }>(apiUrl('/linked'), {
       headers: authorization(),
       timeout: 15000,
     });
+    if (response.data.syncPolicy !== 'civ-characters-only-v1') throw new Error('Unsafe or outdated lion_civsync FiveM resource; automatic sync is disabled until the safe version is deployed.');
     if (!Array.isArray(response.data.linked)) throw new Error('Invalid linked users response');
     const fullScan = lastFullScan === 0 || Date.now() - lastFullScan > 30 * 60 * 1000;
     const ids = response.data.linked.filter((id) =>
