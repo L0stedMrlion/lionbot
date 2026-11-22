@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { MessageFlags, SectionBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder, ThumbnailBuilder } from 'discord.js';
 import type { Client, GuildMember, User } from 'discord.js';
 import { claimCivRoleGroups } from '../config/claimciv';
 
@@ -58,16 +59,41 @@ async function requestSync(discordId: string, target: SyncTarget): Promise<SyncR
 
 async function notifyUser(user: User, target: SyncTarget, result: SyncResult) {
   if (!result.changed && result.affected === 0) return;
-  const description = target.group === 'user'
-    ? 'Tvoje civilní oprávnění byla odebrána. Na všech příslušných postavách se skupina změnila na `user`.'
-    : `Tvoje civilní skupina se změnila na **${target.label}** (\`${target.group}\`). Změna platí pro všechny tvé postavy.`;
-  const extra = result.pending
-    ? '\n\nZměna se uplatní na postavách po propojení tvého FiveM účtu s Discordem při připojení na server.'
-    : result.skipped > 0
-      ? `\n\nNěkteré postavy mají chráněnou skupinu mimo CIV systém (${result.skipped}) a nebyly změněny.`
-      : '';
+
+  const revoked = target.group === 'user';
+  const heading = revoked ? '❌ Civilian oprávnění odebrána' : '✅ Civilian oprávnění aktualizována';
+  const message = revoked
+    ? 'Tvoje oprávnění v systému Civilian byla odebrána. Příslušné postavy byly převedeny zpět do základní skupiny \u0060user\u0060.'
+    : `Tvoje aktuální skupina je **${target.label}** (\u0060${target.group}\u0060). Oprávnění se automaticky synchronizují na všechny tvoje příslušné postavy.`;
+
+  const details: string[] = [];
+  if (result.pending) {
+    details.push('⏳ **Čeká na propojení účtu**\nZměny se uplatní po propojení FiveM účtu s Discordem při připojení na server.');
+  }
+  if (result.skipped > 0) {
+    details.push(`🔒 **Chráněné postavy**\nU ${result.skipped} postav nebyla skupina změněna, protože mají chráněné oprávnění mimo CIV systém.`);
+  }
+
+  const section = new SectionBuilder()
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent('## 🛡️ LION POLICE ROLEPLAY\n### Civilian Permissions'),
+      new TextDisplayBuilder().setContent(`### ${heading}\n\n${message}`),
+    )
+    .setThumbnailAccessory(
+      new ThumbnailBuilder({
+        media: { url: 'https://r2.fivemanage.com/zlqBQerSIEakQVh7POEZe/policelogo.png' },
+      }),
+    );
+
+  const components = [
+    section,
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+    ...(details.length ? [new TextDisplayBuilder().setContent(details.join('\n\n')), new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)] : []),
+    new TextDisplayBuilder().setContent('ℹ️ **Automatické oznámení** • Lion Police Roleplay\nOprávnění jsou spravována podle tvých Discord rolí.'),
+  ];
+
   try {
-    await user.send(`🛡️ **Lion Police Roleplay — Civilian Permissions**\n\n${description}${extra}`);
+    await user.send({ flags: MessageFlags.IsComponentsV2, components });
   } catch (error) {
     console.warn(`[civSync] Discord DM not delivered to ${user.id}:`, error);
   }
