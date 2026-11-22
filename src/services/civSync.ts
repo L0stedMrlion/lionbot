@@ -86,7 +86,7 @@ async function notifyUser(user: User, target: SyncTarget, result: SyncResult) {
     section,
     new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
     ...(details.length ? [new TextDisplayBuilder().setContent(details.join('\n\n')), new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)] : []),
-    new TextDisplayBuilder().setContent('ℹ️ **Automatické oznámení** Tato zpráva byla vygenerována automaticky pouze pro Vaši informaci.'),
+    new TextDisplayBuilder().setContent('ℹ️ **Automatické oznámení:** Tato zpráva byla vygenerována automaticky pouze pro Vaši informaci.'),
   ];
 
   try {
