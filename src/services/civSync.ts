@@ -28,6 +28,57 @@ function resolveCivGroup(roleIds: { has(roleId: string): boolean }): SyncTarget 
 }
 
 const pending = new Map<string, Promise<SyncResult>>();
+const roleChangeTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const noCivRoleSince = new Map<string, number>();
+
+function configuredDelay(name: string, defaultSeconds: number, minimumSeconds: number, maximumSeconds: number): number {
+  const raw = process.env[name];
+  if (!raw) return defaultSeconds * 1000;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < minimumSeconds || parsed > maximumSeconds) {
+    console.warn(`[civSync] Invalid ${name}; using ${defaultSeconds} seconds`);
+    return defaultSeconds * 1000;
+  }
+  return parsed * 1000;
+}
+
+const rankChangeDelayMs = configuredDelay('CIVSYNC_ROLE_SETTLE_SECONDS', 12, 5, 120);
+const roleRemovalGraceMs = configuredDelay('CIVSYNC_REMOVAL_GRACE_SECONDS', 60, 30, 600);
+
+function deferredSync(group: string): SyncResult {
+  return { status: 'deferred', group, changed: false, affected: 0, skipped: 0, linked: 0, pending: true };
+}
+
+function scheduleRoleSyncTimer(member: GuildMember, delayMs: number) {
+  const existing = roleChangeTimers.get(member.id);
+  if (existing) clearTimeout(existing);
+  const timer = setTimeout(() => {
+    if (roleChangeTimers.get(member.id) !== timer) return;
+    roleChangeTimers.delete(member.id);
+    void syncMember(member).catch((error) => {
+      console.error(`[civSync] Delayed role synchronization failed for ${member.id}:`, error);
+    });
+  }, Math.max(0, delayMs));
+  roleChangeTimers.set(member.id, timer);
+}
+
+export function scheduleCivRoleSync(member: GuildMember) {
+  const group = resolveCivGroup(member.roles.cache).group;
+  if (group === 'user') {
+    noCivRoleSince.set(member.id, Date.now());
+  } else {
+    noCivRoleSince.delete(member.id);
+  }
+  scheduleRoleSyncTimer(member, group === 'user' ? roleRemovalGraceMs : rankChangeDelayMs);
+}
+
+export function cancelCivRoleSync(discordId: string) {
+  const existing = roleChangeTimers.get(discordId);
+  if (existing) clearTimeout(existing);
+  roleChangeTimers.delete(discordId);
+  noCivRoleSince.delete(discordId);
+}
+
 const knownLinked = new Set<string>();
 let started = false;
 let running = false;
@@ -139,9 +190,26 @@ async function performSync(discordId: string, target: SyncTarget, user?: User, s
 export function syncMember(member: GuildMember, sendDm = true) {
   return serializeSync(member.id, async () => {
     try {
+      if (roleChangeTimers.has(member.id)) return deferredSync('pending');
       const actual = await member.guild.members.fetch({ user: member.id, force: true });
+      if (roleChangeTimers.has(member.id)) return deferredSync('pending');
       const target = resolveCivGroup(actual.roles.cache);
+
+      if (target.group === 'user') {
+        const now = Date.now();
+        const absentSince = noCivRoleSince.get(member.id) ?? now;
+        noCivRoleSince.set(member.id, absentSince);
+        const remainingMs = absentSince + roleRemovalGraceMs - now;
+        if (remainingMs > 0) {
+          scheduleRoleSyncTimer(actual, remainingMs);
+          return deferredSync('user');
+        }
+      } else {
+        noCivRoleSince.delete(member.id);
+      }
+
       const result = await performSync(actual.id, target, actual.user, sendDm);
+      noCivRoleSince.delete(member.id);
       knownLinked.add(member.id);
       return result;
     } catch (error) {
@@ -152,6 +220,7 @@ export function syncMember(member: GuildMember, sendDm = true) {
 }
 
 export function syncRemovedMember(discordId: string, user: User) {
+  cancelCivRoleSync(discordId);
   return serializeSync(discordId, async () => {
     try {
       const target = { group: 'user', label: 'User' };
@@ -178,15 +247,15 @@ async function checkLinked(client: Client) {
     if (!Array.isArray(response.data.linked)) throw new Error('Invalid linked users response');
     const fullScan = lastFullScan === 0 || Date.now() - lastFullScan > 30 * 60 * 1000;
     const ids = response.data.linked.filter((id) =>
-      /^\d{16,22}$/.test(id) && (fullScan || !knownLinked.has(id)),
+      /^\d{16,22}$/.test(id) && !roleChangeTimers.has(id) && (fullScan || !knownLinked.has(id)),
     );
     for (let i = 0; i < ids.length; i += 4) {
       const batch = ids.slice(i, i + 4);
       await Promise.all(batch.map(async (id) => {
         try {
           const member = await guild.members.fetch({ user: id, force: true });
-          await syncMember(member, true);
-          knownLinked.add(id);
+          const result = await syncMember(member, true);
+          if (result.status === 'ok') knownLinked.add(id);
         } catch (error) {
           if (axios.isAxiosError(error) && error.response?.status === 404) {
             console.warn(`[civSync] Invalid endpoint while reconciling ${id}`);
