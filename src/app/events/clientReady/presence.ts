@@ -60,7 +60,7 @@ function buildStatusPool(stats: LiveStats): Status[] {
 
   if (civ_count > 0)
     candidates.push({
-      name: `🟩 ${civ_count} Verified Civilian${civ_count !== 1 ? 's' : ''} online`,
+      name: `🔮 ${civ_count} Civilian${civ_count !== 1 ? 's' : ''} online`,
       type: ActivityType.Watching,
     });
 
